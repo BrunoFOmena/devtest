@@ -56,6 +56,22 @@ Cada **Amostra / microtubo** tem, no mínimo:
 | `exame` | `CONTROLE INTERNO` | exame associado (opcional) |
 | `observacao` | texto livre | opcional |
 
+### Sugestão de modelagem (opcional)
+
+Como referência, as **entidades** e suas **relações** seguem a hierarquia física:
+
+```
+Sala 1─N Freezer 1─N Gaveta 1─N Caixa 1─N Posição 0..1─ Amostra
+```
+
+- **Sala** possui vários **Freezers**
+- **Freezer** possui várias **Gavetas**
+- **Gaveta** possui várias **Caixas**
+- **Caixa** possui várias **Posições** (definidas pelo tamanho linhas × colunas)
+- Cada **Posição** guarda **no máximo uma Amostra** (ou está livre)
+
+> 🧩 A modelagem de campos, tipos e como você representa a **Posição** (tabela própria x calculada a partir do tamanho da caixa) é **livre** — construa a sua. Essa é uma das coisas que vamos conversar na entrevista.
+
 ---
 
 ## 🛠️ Requisitos Obrigatórios
