@@ -1,166 +1,155 @@
-
-
-
-# Teste Dev 2025
+# Teste Dev 2026 🧬🧊
 
 Por que trabalhar na NeoGenomica ?
 ===============================
 
 A NeoGenomica entra no mercado como um dos principais laboratórios do Brasil a oferecer tecnologia de sequenciamento genético de nova geração, focada na identificação, análise e diagnóstico de doenças raras. Além disso, disponibilizamos uma ampla gama de exames genéticos voltados para análises clínicas.
 
-Nossa equipe é composta por especialistas renomados em suas áreas, como biomédicos, médicos e bioinformatas, que utilizam as mais avançadas tecnologias e equipamentos para realizar testes genéticos de ponta. Em especial, o time de bioinformática lida diariamente com ferramentas, plataformas e sistemas que manipulam grandes volumes de dados gerados a partir do sequenciamento de DNA e bancos de dados sobre doenças genéticas.
-
-Com o desafio de processar esses grandes volumes de dados, desenvolvemos ferramentas de alto desempenho e especializadas, que apoiam nossos analistas na realização de diagnósticos clínicos precisos. Na NeoGenomica, trabalhamos com Big Data voltado para a saúde, o que reforça nosso compromisso com a inovação. Fazer parte do nosso time significa colaborar com profissionais de diversas formações, unidos pelo objetivo de oferecer a milhões de brasileiros acesso a informações detalhadas e profundas sobre sua saúde, auxiliando-os em suas escolhas de vida.
-
-
-
-## Teste técnico para processo seletivo NeoGenomica 🧬
-
-## Objetivo
-
-Criar uma aplicação web Full Stack (front-end + back-end) para o gerenciamento de primers utilizados em exames de pesquisa de mutações por sequenciamento genético. Este sistema deve permitir cadastrar, buscar, exportar e importar primers de forma eficiente.
-
-## Contexto
-
-Na rotina laboratorial, utilizamos primers para amplificação de regiões específicas do genoma humano. Cada primer é definido por diversas informações como sequência, localização no genoma, transcrito alvo e exon. Este sistema tem como objetivo facilitar o gerenciamento destes primers.
+Nossa equipe é composta por especialistas renomados — biomédicos, médicos e bioinformatas — que utilizam tecnologias de ponta para realizar testes genéticos. No dia a dia da bancada, manipulamos **milhares de microtubos de DNA** guardados em freezers, e hoje esse controle é feito em planilha. Queremos evoluir isso para uma ferramenta de verdade.
 
 ---
 
-## Requisitos Obrigatórios 🛠️
+## Teste técnico para processo seletivo NeoGenomica
 
-### Funcionalidades
+## 🎯 Objetivo
 
-1. **CRUD de primers**
-   - Campos obrigatórios:
-     - `id` (auto-incremento ou UUID)
-     - `label`
-     - `foward_sequence`
-     - `reverse_sequence`
-     - `foward_temperature`
-     - `reverse_temperature`
-     - `chr`
-     - `transcrito`
-     - `start`
-     - `end`
-     - `conditions`
-     - `exon`
-     - `genome_version`
-     - `bed`
-     - `size`
+Criar uma aplicação web **Full Stack** (front-end + back-end) para o **gerenciamento de estoque de microtubos de DNA** do nosso laboratório. Hoje fazemos isso em planilha (veja `amostras_exemplo.csv`); o objetivo é substituir a planilha por um sistema que organize onde cada amostra está guardada e ajude a bancada a **encontrar rapidamente uma amostra** e a **decidir onde guardar uma amostra nova**.
 
-| Campo                 | Tipo de Dado       | Exemplo                                           | Observações                                               |
-| --------------------- | ------------------ | ------------------------------------------------- | --------------------------------------------------------- |
-| `id`                  | Inteiro ou UUID    | `70`                                              | Pode ser gerado automaticamente pelo banco de dados       |
-| `label`               | Texto (único)      | `PORCN_15`                                        | **Obrigatoriamente único**                                |
-| `foward_sequence`     | Texto (DNA)        | `GGGCAAAGGATGGGTTTTC`                             | Sequência da fita forward (A, T, G, C)                    |
-| `reverse_sequence`    | Texto (DNA)        | `CAGTGGCACCCTGAGAGG`                              | Sequência da fita reverse (A, T, G, C)                    |
-| `foward_temperature`  | Decimal            | `61.6`                                            | Temperatura de anelamento da fita forward                 |
-| `reverse_temperature` | Decimal            | `60.4`                                            | Temperatura de anelamento da fita reverse                 |
-| `chr`                 | Seleção (dropdown) | `1`, `2`, ..., `22`, `X`, `Y`, `MT`               | Deve ser selecionado de uma lista fixa de cromossomos     |
-| `transcrito`          | Texto              | `NM_203475.3`                                     | Identificador RefSeq                                      |
-| `start`               | Inteiro            | `48520301`                                        | Início da região genômica (posição)                       |
-| `end`                 | Inteiro            | `48520530`                                        | Final da região genômica (posição)                        |
-| `conditions`          | Texto              | `TD66-60`                                         | Condição de uso do primer (ex: temperatura, protocolo)    |
-| `exon`                | Texto              | `15`                                              | Número ou identificador do éxon                           |
-| `genome_version`      | Seleção            | `hg19` ou `hg38`                                  | Versão do genoma de referência (apenas essas duas opções) |
-| `bed`                 | Texto              | `chrX 48520301 48520530 PORCN_NM_203475.3_exon15` | Linha usada na exportação BED (separada por tab)          |
-| `size`                | Texto              | `230pb`                                           | Tamanho do amplicon (ex: `230pb`)                         |
-
-
-
-2. **Busca de primers**
-   - Buscar por `label`, `foward_sequence` ou `reverse_sequence`.
-
-3. **Exportação de BED**
-   - Selecionar um ou mais primers e exportar em arquivo `.bed` com o seguinte formato:
-     ```
-     chrX    48520301    48520530    PORCN_NM_203475.3_exon15
-     ```
-   - O nome do arquivo deve ser definido pelo usuário no momento da exportação.
-   - Separador deve ser tabulação (`\t`).
+> ℹ️ **Sobre o nível:** este é um teste para uma vaga de **desenvolvedor(a) júnior**. Não esperamos que você entregue 100% dos itens. Foque em fazer bem os **Requisitos Obrigatórios**; os **Bônus** são para quem quiser se destacar. Avaliamos muito mais a **clareza do raciocínio e a organização do código** do que a quantidade de features.
 
 ---
 
-## Requisitos Bônus ⭐
+## 🧊 Contexto e modelo de dados
 
-1. **Filtro avançado**
-   - Buscar primers por cromossomo (`chr`) e faixa de coordenadas (`start` a `end`).
+As amostras são guardadas seguindo uma **hierarquia física**:
 
-2. **Importação via CSV**
-   - Upload de um arquivo `.csv` contendo primers.
-   - Se já existir um `label`, o registro deve ser sobrescrito.
+```
+Sala/Local  (ex.: "Pré-PCR", "Pós-PCR")
+  └── Freezer            (ex.: "-20°C Amostras", "-80°C")   → tem um limite máximo de gavetas
+        └── Gaveta/Rack                                     → tem um limite máximo de caixas
+              └── Caixa   (uma grade de posições)           → o tamanho é definido ao criar (linhas × colunas)
+                    └── Posição  (ex.: A1, B2 ...)          → guarda 1 microtubo (1 amostra) ou está livre
+```
 
-3. **Autenticação**
-   - Login para acessar o sistema.
-   - Cada ação (cadastrar, editar, excluir, exportar) deve exigir autenticação.
+Cada **Caixa** é uma grade. O tamanho é **definido pelo usuário ao criar** — no nosso lab usamos caixas de vários tamanhos (ex.: `9×9`, `10×10`, e também caixas menores como `4×4` ou `8×8`). As posições são identificadas por **linha (letra) + coluna (número)**: `A1`, `A2`, ... `B1` ...
+
+Cada **Amostra / microtubo** tem, no mínimo:
+
+| Campo | Exemplo | Observações |
+|---|---|---|
+| `codigo_amostra` | `A0100100049801` | identificador da amostra (**único**) |
+| `paciente_nome` | `CONTROLE NEO 136` | nome/identificação |
+| `concentracao_ng_ul` | `52.8` | concentração em ng/µL |
+| `material` | `DNA` / `Swab bucal` | tipo de material |
+| `exame` | `CONTROLE INTERNO` | exame associado (opcional) |
+| `observacao` | texto livre | opcional |
 
 ---
 
-## Requisitos Técnicos 🔧
+## 🛠️ Requisitos Obrigatórios
 
-- Você pode utilizar o stack que preferir, mas sugerimos:
+1. **Cadastro da estrutura física (CRUD)**
+   - Criar/editar/remover **Salas**, **Freezers**, **Gavetas** e **Caixas**.
+   - Ao criar uma **Caixa**, o usuário **define o tamanho** (nº de linhas e nº de colunas).
+
+2. **Cadastro de amostras**
+   - Adicionar uma amostra ao sistema com os campos acima.
+
+3. **Sugestão automática de posição** ⭐ *(o coração do teste)*
+   - Ao adicionar uma amostra, o sistema deve **sugerir automaticamente uma posição livre** e informar o **caminho completo**: `Sala → Freezer → Gaveta → Caixa → Posição` (ex.: `Pré-PCR / -20°C / Gaveta 1 / CX-CONTROLE / C3`).
+   - Se **não houver nenhuma posição livre** nas caixas existentes, o sistema deve **avisar que é preciso abrir uma nova caixa** para poder alocar a amostra.
+   - **Regra de alocação (first-fit)** — implemente exatamente assim para não haver ambiguidade:
+     1. Percorra as caixas existentes numa ordem **determinística** (ex.: por data de criação, ou ordem alfabética do nome).
+     2. Dentro de uma caixa, percorra as posições em ordem **linha a linha** (`A1, A2, …, A{n}, B1, …`) e escolha a **primeira posição livre**.
+     3. Se a caixa estiver cheia, passe para a próxima; se **todas** estiverem cheias, retorne "**abrir nova caixa**".
+
+4. **Visualização para encontrar uma amostra**
+   - Pelo menos **uma** forma de listar/buscar as amostras e ver **onde cada uma está** (Sala/Freezer/Gaveta/Caixa/Posição).
+   - Pode ser **tabela** ou **lista** com busca por `codigo_amostra` ou `paciente_nome`.
+
+5. **README de execução**
+   - A aplicação roda localmente, com instruções claras de como subir back-end, front-end e banco.
+
+---
+
+## ⭐ Requisitos Bônus (diferenciais)
+
+1. **Limites de capacidade**
+   - Definir **máximo de caixas por gaveta** e **máximo de gavetas por freezer**, e **impedir/avisar** quando o limite for atingido.
+   - Ao sugerir "abrir nova caixa", respeitar esses limites (sugerir em qual gaveta/freezer a nova caixa caberia).
+
+2. **Visualização em MAPA** 🗺️ *(o bônus mais legal)*
+   - Uma forma **visual** de enxergar a estrutura como a bancada veria de verdade: uma caixa desenhada como grade, posições ocupadas x livres, e ao clicar numa posição ver a amostra.
+   - Use sua criatividade: mapa da caixa, "heatmap" de ocupação por freezer/gaveta, mini-mapa navegável. Surpreenda-nos.
+
+3. **Importação via CSV**
+   - Importar amostras a partir de um `.csv` (use o `amostras_exemplo.csv` como referência).
+
+4. **Autenticação**
+   - Login para acessar o sistema; ações de escrita exigem estar autenticado.
+
+5. **Busca/filtro avançado**
+   - Filtrar por freezer, gaveta, exame, material, ou posições livres.
+
+---
+
+## 🔧 Requisitos Técnicos
+
+- Use o stack que preferir. Sugestões (não obrigatórias):
   - **Front-end:** React, Vue.js ou Angular
-  - **Back-end:** Ruby on Rails
+  - **Back-end:** Node/Express, Ruby on Rails, Python (FastAPI/Django) ou similar
   - **Banco de dados:** PostgreSQL ou outro relacional
-- A aplicação pode rodar localmente, com instruções claras no `README` de como executar.
+- A aplicação deve rodar localmente com instruções claras no `README`.
 
 ---
 
-## Entrega
+## 📦 Entrega
 
-1. Faça um fork deste repositório.
+1. Faça um **fork** deste repositório.
 2. Desenvolva sua solução em um branch chamado `develop`.
-3. Envie o link do seu repositório com instruções de execução no `README`.
+3. Envie o **link do seu repositório** com instruções de execução no `README`.
 
 ---
 
-## Segundo Desafio - Discussão Técnica 🔐
+## 🚀 Segundo Desafio — Estratégia de CI/CD (apresentação)
 
-### Tema: Estratégias de Autenticação e Segurança para Aplicações Web
+A segunda parte é uma **apresentação de até 15 minutos** (máximo **5 slides**), discutida numa chamada com os entrevistadores. **Não é para escrever código** — queremos entender **como você pensaria** o deploy dessa aplicação.
 
-Preparamos uma segunda parte do desafio que será discutida em uma chamada com os entrevistadores.
+**Descreva o fluxo de CI/CD que você montaria**, abordando:
 
-**Objetivo:** Apresente uma avaliação crítica sobre soluções de autenticação e segurança para a aplicação desenvolvida.
+- **Estratégia de branches** (ex.: `main`/`develop`/`feature/*`, trunk-based, GitFlow — e por quê).
+- **Fluxo até produção**: o que acontece de um commit até o deploy? Quais ambientes (dev/staging/prod)?
+- **Pull Request: exige ou não?** Quem revisa? Precisa de aprovação?
+- **Testes: rodaria testes automatizados? Quais** (unit, integração, e2e, lint)? São **obrigatórios** para mergear/deployar, ou não? Por quê?
+- **O que o pipeline faria** em cada etapa (build, testes, deploy) e **como um deploy é disparado** (automático no merge? manual?).
 
-**Duração:**  
-- Apresentação: até 15 minutos  
-- Perguntas e respostas: 5 minutos
+Pode usar slides ou diagramas. Não existe resposta única certa — queremos ver seu **raciocínio e as escolhas** (e trade-offs) que você faria para um time pequeno de laboratório.
 
-**Sugestões de tópicos para abordar:**
-
-- Estratégias de autenticação (JWT, OAuth2, sessões, etc)
-- Armazenamento seguro de senhas (bcrypt, scrypt)
-- Controle de acesso (RBAC)
-- Proteção contra ataques comuns (CSRF, XSS, SQL Injection)
-- Uso de HTTPS, CORS e rate limiting
-- Boas práticas com cookies e tokens
-
-Você pode usar slides ou diagramas, se desejar.
+**Duração:** apresentação até 15 min + 5 min de perguntas.
 
 ---
 
-## Critérios de Avaliação ✅
+## ✅ Critérios de Avaliação
 
 - Clareza e organização do código
 - Boas práticas de desenvolvimento
-- Cobertura dos requisitos obrigatórios e bônus
-- Facilidade de uso da interface
-- Segurança e robustez da autenticação
-- Capacidade de argumentação técnica na discussão
+- Cobertura dos requisitos obrigatórios (e bônus, se houver)
+- Correção da **regra de sugestão de posição**
+- Facilidade de uso da interface (a bancada consegue achar uma amostra rápido?)
+- Capacidade de argumentação técnica na apresentação de CI/CD
 
 ---
 
-## Exemplo de Entrada CSV (Cabeçalho obrigatório)
+## 📄 Dados de exemplo
+
+Incluímos `amostras_exemplo.csv` — um recorte **real** (anonimizável) do nosso controle atual em planilha, já limpo em UTF-8. Colunas:
 
 ```csv
-label,foward_sequence,reverse_sequence,foward_temperature,reverse_temperature,chr,transcrito,start,end,conditions,exon,genome_version,bed,size
-PORCN_15,GGGCAAAGGATGGGTTTTC,CAGTGGCACCCTGAGAGG,61.6,60.4,X,NM_203475.3,48520301,48520530,TD66-60,15,hg38,chrX 48520301 48520530 PORCN_NM_203475.3_exon15,230pb
+sala,freezer,gaveta,caixa,linhas,colunas,posicao,codigo_amostra,paciente_nome,concentracao_ng_ul,material,exame,observacao
 ```
 
-## Referências
+Use-o para popular o sistema (seed) e/ou para testar a importação via CSV (bônus).
 
-- Adicionamos um exemplo de bed para download
-- Adicionamos um exemplo de arquivo de teste de primers para importação manual ou via csv (upload)
+---
 
-
-- Para facilitar ao terminar o seu teste, commit todo o seu projeto no seu respositório forkeado (bifurcado) e nos envie o link do seu repositório junto a resposta do seu teste admissional.
+Para finalizar, faça o commit de todo o seu projeto no seu repositório **forkeado (bifurcado)** e nos envie o link junto à sua resposta. Boa sorte! 🍀
