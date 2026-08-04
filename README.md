@@ -9,10 +9,12 @@ Nossa equipe é composta por especialistas renomados — biomédicos, médicos e
 
 Exemplos de armazenamento de amostras microtubos em freezer
 
-<img width="900" height="600" alt="image" src="https://github.com/user-attachments/assets/238380c8-8cfb-4c7d-8b6b-903973ea27b7" />
-
-
-<img width="768" height="768" alt="image" src="https://github.com/user-attachments/assets/5be62804-6403-42e8-bc47-b51b5f815159" />
+<table>
+  <tr>
+    <td width="50%"><img alt="Amostras em microtubos no freezer" src="https://github.com/user-attachments/assets/238380c8-8cfb-4c7d-8b6b-903973ea27b7" /></td>
+    <td width="50%"><img alt="Caixa/rack de microtubos" src="https://github.com/user-attachments/assets/5be62804-6403-42e8-bc47-b51b5f815159" /></td>
+  </tr>
+</table>
 
 
 ---
