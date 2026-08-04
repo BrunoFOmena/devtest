@@ -27,6 +27,8 @@ Criar uma aplicação web **Full Stack** (front-end + back-end) para o **gerenci
 
 > ℹ️ **Sobre o nível:** este é um teste para uma vaga de **desenvolvedor(a) júnior**. Não esperamos que você entregue 100% dos itens. Foque em fazer bem os **Requisitos Obrigatórios**; os **Bônus** são para quem quiser se destacar. Avaliamos muito mais a **clareza do raciocínio e a organização do código** do que a quantidade de features.
 
+> 🤖 **Uso de IA:** você **pode usar ferramentas de IA** (ChatGPT, Copilot, Claude etc.) — elas fazem parte do dia a dia. O que realmente importa é que **você entenda tudo o que foi construído** e saiba **explicar suas escolhas** na conversa técnica. Vamos conversar sobre o código e as decisões, então esteja preparado(a) para justificar como e por que fez cada parte.
+
 ---
 
 ## 🧊 Contexto e modelo de dados
