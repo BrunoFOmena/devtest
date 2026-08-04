@@ -7,6 +7,14 @@ A NeoGenomica entra no mercado como um dos principais laboratórios do Brasil a 
 
 Nossa equipe é composta por especialistas renomados — biomédicos, médicos e bioinformatas — que utilizam tecnologias de ponta para realizar testes genéticos. No dia a dia da bancada, manipulamos **milhares de microtubos de DNA** guardados em freezers, e hoje esse controle é feito em planilha. Queremos evoluir isso para uma ferramenta de verdade.
 
+Exemplos de armazenamento de amostras microtubos em freezer
+
+<img width="900" height="600" alt="image" src="https://github.com/user-attachments/assets/238380c8-8cfb-4c7d-8b6b-903973ea27b7" />
+
+
+<img width="768" height="768" alt="image" src="https://github.com/user-attachments/assets/5be62804-6403-42e8-bc47-b51b5f815159" />
+
+
 ---
 
 ## Teste técnico para processo seletivo NeoGenomica
