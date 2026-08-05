@@ -1,0 +1,17 @@
+# Copie para database.local.yml (ignorado pelo git) e preencha sua senha local.
+# O Rails carrega automaticamente se você incluir no database.yml via ERB, ou
+# configure username/password/host aqui e importe manualmente no development/test.
+#
+# Motivo: senha do Postgres não deve ir para o repositório.
+
+development:
+  username: postgres
+  password: SUA_SENHA_AQUI
+  host: localhost
+  port: 5432
+
+test:
+  username: postgres
+  password: SUA_SENHA_AQUI
+  host: localhost
+  port: 5432
