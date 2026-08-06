@@ -1,0 +1,19 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  position: one
+  codigo_amostra: MyString
+  paciente_nome: MyString
+  concentracao_ng_ul: 9.99
+  material: MyString
+  exame: MyString
+  observacao: MyText
+
+two:
+  position: two
+  codigo_amostra: MyString
+  paciente_nome: MyString
+  concentracao_ng_ul: 9.99
+  material: MyString
+  exame: MyString
+  observacao: MyText
