@@ -11,7 +11,7 @@ one:
 
 two:
   position: two
-  codigo_amostra: MyString
+  codigo_amostra: MyString2
   paciente_nome: MyString
   concentracao_ng_ul: 9.99
   material: MyString
