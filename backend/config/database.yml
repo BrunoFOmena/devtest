@@ -12,7 +12,7 @@
 # Configure Using Gemfile
 # gem "pg"
 #
-# Credenciais locais (Windows): config/database.local.yml (gitignored)
+# Credenciais locais: config/database.local.yml (gitignored). Postgres via Docker Compose na raiz.
 <% local_path = Rails.root.join("config/database.local.yml") %>
 <% local_cfg = File.exist?(local_path) ? (YAML.load_file(local_path)[Rails.env] || {}) : {} %>
 

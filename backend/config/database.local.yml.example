@@ -1,14 +1,16 @@
-
-# Isso aqui foi criado para simplificação, e não expor senha do Postgres, que não deve ir para o repositório.
+# Copie para database.local.yml:
+#   cp config/database.local.yml.example config/database.local.yml
+#
+# Credenciais iguais ao docker-compose.yml na raiz do repositório.
 
 development:
   username: postgres
-  password: "coloque_a_senha"
+  password: postgres
   host: 127.0.0.1
   port: 5432
 
 test:
   username: postgres
-  password: "coloque_a_senha"
+  password: postgres
   host: 127.0.0.1
   port: 5432
