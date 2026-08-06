@@ -7,11 +7,11 @@ module ActiveSupport
   class TestCase
     include DomainTestHelper
 
-    # Run tests in parallel with specified workers
-    parallelize(workers: :number_of_processors, with: :threads)
+    # Requisicoes HTTP em integration tests podem persistir fora da transacao do teste.
+    setup { Room.destroy_all }
 
-    # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
-    fixtures :all
+    # Threads compartilham o mesmo banco de teste; usar 1 worker evita interferencia entre arquivos.
+    parallelize(workers: 1)
 
     # Add more helper methods to be used by all tests here...
   end

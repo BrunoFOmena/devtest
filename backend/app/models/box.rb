@@ -1,6 +1,6 @@
 class Box < ApplicationRecord
   belongs_to :drawer
-  has_many :positions
+  has_many :positions, dependent: :destroy
 
   validates :name, presence: true
   validates :rows, numericality: { only_integer: true, greater_than: 0 }
