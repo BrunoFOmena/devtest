@@ -1,0 +1,891 @@
+openapi: 3.0.3
+info:
+  title: Neogenômica — API de Microtubos de DNA
+  description: |
+    API JSON para controle de estoque de microtubos de DNA.
+
+    Hierarquia física: **Sala → Freezer → Gaveta → Caixa → Posição → Amostra**.
+
+    Ao cadastrar uma amostra, a posição é escolhida automaticamente pelo algoritmo
+    **first-fit** (caixas mais antigas primeiro; dentro da caixa, linha a linha A1, A2…).
+    O cliente **não** envia `position_id`.
+  version: 1.0.0
+  contact:
+    name: Bruno Feliciano de Omena
+
+servers:
+  - url: http://localhost:3000
+    description: Desenvolvimento local
+
+tags:
+  - name: Health
+  - name: Rooms
+  - name: Freezers
+  - name: Drawers
+  - name: Boxes
+  - name: Positions
+  - name: Samples
+
+paths:
+  /up:
+    get:
+      tags: [Health]
+      summary: Health check
+      operationId: healthCheck
+      responses:
+        "200":
+          description: Aplicação no ar
+
+  /rooms:
+    get:
+      tags: [Rooms]
+      summary: Lista salas
+      operationId: listRooms
+      responses:
+        "200":
+          description: Lista ordenada por nome
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Room"
+    post:
+      tags: [Rooms]
+      summary: Cria sala
+      operationId: createRoom
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoomInput"
+            example:
+              room:
+                name: Sala Pré-PCR
+      responses:
+        "201":
+          description: Sala criada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Room"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+
+  /rooms/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      tags: [Rooms]
+      summary: Mostra sala
+      operationId: getRoom
+      responses:
+        "200":
+          description: Sala encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Room"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags: [Rooms]
+      summary: Atualiza sala
+      operationId: updateRoom
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoomInput"
+      responses:
+        "200":
+          description: Sala atualizada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Room"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+    delete:
+      tags: [Rooms]
+      summary: Remove sala (cascata na hierarquia)
+      operationId: deleteRoom
+      responses:
+        "204":
+          description: Removida
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /rooms/{room_id}/freezers:
+    parameters:
+      - $ref: "#/components/parameters/RoomId"
+    get:
+      tags: [Freezers]
+      summary: Lista freezers da sala
+      operationId: listFreezers
+      responses:
+        "200":
+          description: Lista ordenada por nome
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Freezer"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      tags: [Freezers]
+      summary: Cria freezer na sala
+      operationId: createFreezer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FreezerInput"
+            example:
+              freezer:
+                name: Freezer A
+      responses:
+        "201":
+          description: Freezer criado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Freezer"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+
+  /rooms/{room_id}/freezers/{id}:
+    parameters:
+      - $ref: "#/components/parameters/RoomId"
+      - $ref: "#/components/parameters/Id"
+    get:
+      tags: [Freezers]
+      summary: Mostra freezer
+      operationId: getFreezer
+      responses:
+        "200":
+          description: Freezer encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Freezer"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags: [Freezers]
+      summary: Atualiza freezer
+      operationId: updateFreezer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FreezerInput"
+      responses:
+        "200":
+          description: Freezer atualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Freezer"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+    delete:
+      tags: [Freezers]
+      summary: Remove freezer
+      operationId: deleteFreezer
+      responses:
+        "204":
+          description: Removido
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /freezers/{freezer_id}/drawers:
+    parameters:
+      - $ref: "#/components/parameters/FreezerId"
+    get:
+      tags: [Drawers]
+      summary: Lista gavetas do freezer
+      operationId: listDrawers
+      responses:
+        "200":
+          description: Lista ordenada por nome
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Drawer"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      tags: [Drawers]
+      summary: Cria gaveta no freezer
+      operationId: createDrawer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DrawerInput"
+            example:
+              drawer:
+                name: Gaveta 1
+      responses:
+        "201":
+          description: Gaveta criada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Drawer"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+
+  /freezers/{freezer_id}/drawers/{id}:
+    parameters:
+      - $ref: "#/components/parameters/FreezerId"
+      - $ref: "#/components/parameters/Id"
+    get:
+      tags: [Drawers]
+      summary: Mostra gaveta
+      operationId: getDrawer
+      responses:
+        "200":
+          description: Gaveta encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Drawer"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags: [Drawers]
+      summary: Atualiza gaveta
+      operationId: updateDrawer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DrawerInput"
+      responses:
+        "200":
+          description: Gaveta atualizada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Drawer"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+    delete:
+      tags: [Drawers]
+      summary: Remove gaveta
+      operationId: deleteDrawer
+      responses:
+        "204":
+          description: Removida
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /drawers/{drawer_id}/boxes:
+    parameters:
+      - $ref: "#/components/parameters/DrawerId"
+    get:
+      tags: [Boxes]
+      summary: Lista caixas da gaveta
+      operationId: listBoxes
+      responses:
+        "200":
+          description: Lista ordenada por nome
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Box"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      tags: [Boxes]
+      summary: Cria caixa e gera posições automaticamente
+      description: |
+        Informe `rows` e `columns`. Após o create, o sistema gera todas as
+        células (A1, A2, …) via `PositionGenerator`.
+      operationId: createBox
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BoxInput"
+            example:
+              box:
+                name: Caixa 1
+                rows: 8
+                columns: 12
+      responses:
+        "201":
+          description: Caixa criada com grade gerada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Box"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+
+  /drawers/{drawer_id}/boxes/{id}:
+    parameters:
+      - $ref: "#/components/parameters/DrawerId"
+      - $ref: "#/components/parameters/Id"
+    get:
+      tags: [Boxes]
+      summary: Mostra caixa
+      operationId: getBox
+      responses:
+        "200":
+          description: Caixa encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Box"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags: [Boxes]
+      summary: Atualiza caixa
+      operationId: updateBox
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BoxInput"
+      responses:
+        "200":
+          description: Caixa atualizada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Box"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+    delete:
+      tags: [Boxes]
+      summary: Remove caixa
+      operationId: deleteBox
+      responses:
+        "204":
+          description: Removida
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /boxes/{box_id}/positions:
+    parameters:
+      - $ref: "#/components/parameters/BoxId"
+    get:
+      tags: [Positions]
+      summary: Lista grade da caixa (vazia/ocupada)
+      description: Retorna células em ordem linha a linha, com flag `occupied` e resumo da amostra quando houver.
+      operationId: listPositions
+      responses:
+        "200":
+          description: Grade da caixa
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PositionCell"
+              example:
+                - id: 1
+                  row: A
+                  column: 1
+                  label: A1
+                  occupied: true
+                  sample:
+                    id: 10
+                    codigo_amostra: AMO-001
+                    paciente_nome: Maria Silva
+                    concentracao_ng_ul: 12.5
+                    material: DNA
+                - id: 2
+                  row: A
+                  column: 2
+                  label: A2
+                  occupied: false
+                  sample: null
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /samples:
+    get:
+      tags: [Samples]
+      summary: Lista amostras
+      description: Ordenadas da mais recente para a mais antiga, com localização completa.
+      operationId: listSamples
+      responses:
+        "200":
+          description: Lista de amostras
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SampleWithLocation"
+    post:
+      tags: [Samples]
+      summary: Cadastra amostra (alocação automática)
+      description: |
+        Chama o first-fit na hora do create. Não envie `position_id` —
+        o sistema escolhe a posição. Se não houver vaga, retorna 422 com
+        `"abrir nova caixa"`.
+      operationId: createSample
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SampleInput"
+            example:
+              sample:
+                codigo_amostra: AMO-001
+                paciente_nome: Maria Silva
+                material: DNA
+                concentracao_ng_ul: 12.5
+                exame: FMR1
+                observacao: null
+      responses:
+        "201":
+          description: Amostra criada na posição alocada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SampleWithLocation"
+        "422":
+          description: Validação falhou ou não há vaga
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/ErrorMessage"
+                  - $ref: "#/components/schemas/ValidationErrors"
+              examples:
+                caixaCheia:
+                  value:
+                    error: abrir nova caixa
+                codigoDuplicado:
+                  value:
+                    errors:
+                      codigo_amostra:
+                        - has already been taken
+
+  /samples/suggest:
+    post:
+      tags: [Samples]
+      summary: Sugere próxima posição (preview, não grava)
+      description: |
+        Retorna a localização que o first-fit escolheria **sem** criar amostra.
+        Útil para o técnico confirmar antes do cadastro.
+      operationId: suggestSamplePosition
+      responses:
+        "200":
+          description: Próxima posição livre
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Location"
+              example:
+                position_id: 1
+                label: A1
+                row: A
+                column: 1
+                room: Sala Pré-PCR
+                freezer: Freezer A
+                drawer: Gaveta 1
+                box: Caixa 1
+                path: Sala Pré-PCR / Freezer A / Gaveta 1 / Caixa 1 / A1
+        "422":
+          description: Nenhuma vaga disponível
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+              example:
+                error: abrir nova caixa
+
+  /samples/search:
+    get:
+      tags: [Samples]
+      summary: Busca amostras por código ou paciente
+      description: |
+        Busca case-insensitive (`ILIKE`) em `codigo_amostra` e `paciente_nome`.
+        Query vazia ou só espaços retorna `[]`. Limite de 50 resultados.
+      operationId: searchSamples
+      parameters:
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Termo de busca
+          example: maria
+      responses:
+        "200":
+          description: Resultados com localização
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SampleWithLocation"
+
+components:
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+    RoomId:
+      name: room_id
+      in: path
+      required: true
+      schema:
+        type: integer
+    FreezerId:
+      name: freezer_id
+      in: path
+      required: true
+      schema:
+        type: integer
+    DrawerId:
+      name: drawer_id
+      in: path
+      required: true
+      schema:
+        type: integer
+    BoxId:
+      name: box_id
+      in: path
+      required: true
+      schema:
+        type: integer
+
+  responses:
+    NotFound:
+      description: Recurso não encontrado
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorMessage"
+          example:
+            error: Not found
+    UnprocessableEntity:
+      description: Validação falhou ou parâmetro obrigatório ausente
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: "#/components/schemas/ErrorMessage"
+              - $ref: "#/components/schemas/ValidationErrors"
+
+  schemas:
+    Timestamps:
+      type: object
+      properties:
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Room:
+      allOf:
+        - type: object
+          required: [id, name]
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+        - $ref: "#/components/schemas/Timestamps"
+
+    RoomInput:
+      type: object
+      required: [room]
+      properties:
+        room:
+          type: object
+          required: [name]
+          properties:
+            name:
+              type: string
+              minLength: 1
+
+    Freezer:
+      allOf:
+        - type: object
+          required: [id, name, room_id]
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+            room_id:
+              type: integer
+        - $ref: "#/components/schemas/Timestamps"
+
+    FreezerInput:
+      type: object
+      required: [freezer]
+      properties:
+        freezer:
+          type: object
+          required: [name]
+          properties:
+            name:
+              type: string
+              minLength: 1
+
+    Drawer:
+      allOf:
+        - type: object
+          required: [id, name, freezer_id]
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+            freezer_id:
+              type: integer
+        - $ref: "#/components/schemas/Timestamps"
+
+    DrawerInput:
+      type: object
+      required: [drawer]
+      properties:
+        drawer:
+          type: object
+          required: [name]
+          properties:
+            name:
+              type: string
+              minLength: 1
+
+    Box:
+      allOf:
+        - type: object
+          required: [id, name, rows, columns, drawer_id]
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+            rows:
+              type: integer
+              minimum: 1
+            columns:
+              type: integer
+              minimum: 1
+            drawer_id:
+              type: integer
+        - $ref: "#/components/schemas/Timestamps"
+
+    BoxInput:
+      type: object
+      required: [box]
+      properties:
+        box:
+          type: object
+          required: [name, rows, columns]
+          properties:
+            name:
+              type: string
+              minLength: 1
+            rows:
+              type: integer
+              minimum: 1
+              description: Número de linhas da grade (A, B, C…)
+            columns:
+              type: integer
+              minimum: 1
+              description: Número de colunas da grade (1, 2, 3…)
+
+    PositionSampleSummary:
+      type: object
+      nullable: true
+      properties:
+        id:
+          type: integer
+        codigo_amostra:
+          type: string
+        paciente_nome:
+          type: string
+        concentracao_ng_ul:
+          type: number
+          nullable: true
+        material:
+          type: string
+
+    PositionCell:
+      type: object
+      required: [id, row, column, label, occupied]
+      properties:
+        id:
+          type: integer
+        row:
+          type: string
+          description: Letra da linha (A, B, C…)
+          example: A
+        column:
+          type: integer
+          example: 1
+        label:
+          type: string
+          description: Célula legível (row + column)
+          example: A1
+        occupied:
+          type: boolean
+        sample:
+          $ref: "#/components/schemas/PositionSampleSummary"
+
+    Location:
+      type: object
+      required:
+        - position_id
+        - label
+        - row
+        - column
+        - room
+        - freezer
+        - drawer
+        - box
+        - path
+      properties:
+        position_id:
+          type: integer
+        label:
+          type: string
+          example: A1
+        row:
+          type: string
+          example: A
+        column:
+          type: integer
+          example: 1
+        room:
+          type: string
+        freezer:
+          type: string
+        drawer:
+          type: string
+        box:
+          type: string
+        path:
+          type: string
+          description: Caminho legível completo
+          example: Sala Pré-PCR / Freezer A / Gaveta 1 / Caixa 1 / A1
+
+    SampleInput:
+      type: object
+      required: [sample]
+      properties:
+        sample:
+          type: object
+          required: [codigo_amostra, paciente_nome, material]
+          properties:
+            codigo_amostra:
+              type: string
+              minLength: 1
+              description: Identificador único da amostra
+            paciente_nome:
+              type: string
+              minLength: 1
+            material:
+              type: string
+              minLength: 1
+              example: DNA
+            concentracao_ng_ul:
+              type: number
+              minimum: 0
+              nullable: true
+              description: Opcional; pode ser null (UI deve pedir confirmação)
+            exame:
+              type: string
+              nullable: true
+            observacao:
+              type: string
+              nullable: true
+
+    SampleWithLocation:
+      allOf:
+        - $ref: "#/components/schemas/Location"
+        - type: object
+          required: [id, codigo_amostra, paciente_nome, material]
+          properties:
+            id:
+              type: integer
+            codigo_amostra:
+              type: string
+            paciente_nome:
+              type: string
+            material:
+              type: string
+            concentracao_ng_ul:
+              type: number
+              nullable: true
+            exame:
+              type: string
+              nullable: true
+            observacao:
+              type: string
+              nullable: true
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+
+    ErrorMessage:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+          example: Not found
+
+    ValidationErrors:
+      type: object
+      required: [errors]
+      properties:
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          example:
+            name:
+              - can't be blank
