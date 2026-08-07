@@ -1,10 +1,15 @@
-# --- Segredos Rails ---
+# Segredos e config local (Rails)
 backend/config/master.key
 backend/config/credentials/*.key
-backend/.kamal/secrets
 backend/config/database.local.yml
+backend/.kamal/secrets
 
-# --- Logs, cache e uploads ---
+# Variáveis de ambiente
+.env
+.env.*
+!.env.example
+
+# Rails — logs, cache, uploads e build
 backend/log/*
 !backend/log/.keep
 backend/tmp/*
@@ -13,51 +18,20 @@ backend/storage/*
 !backend/storage/.keep
 backend/tmp/storage/*
 !backend/tmp/storage/.keep
-
-# --- Build / dependências ---
 backend/vendor/bundle
-# arquivo de dependências do backend
-
 backend/public/assets
-# arquivo de assets do backend
 
+# Frontend / Node
 node_modules/
-# arquivo de dependências do frontend
 
-
-# --- Variáveis de ambiente (back, front futuro) ---
-.env
-# arquivo de variáveis de ambiente do backend
-
-.env.*
-# arquivo usado para armazenar variáveis de ambiente do backend
-
-!.env.example
-# arquivo usado para armazenar variáveis de ambiente do backend
-
-# --- Editores ---
+# Editores e IDE
 .vscode/
-# arquivo temporário do editor  
-
 .idea/
-# arquivo temporário do editor
-
 *.code-workspace
-# arquivo temporário do editor
+*.swp
+*.swo
+.byebug_history
 
-
-# --- SO / editor temporário ---
-.DS_Store 
-# arquivo temporário do sistema operacional
-
-Thumbs.db 
-# arquivo temporário do sistema operacional
-
-*.swp 
-# arquivo temporário do editor
-
-*.swo 
-# arquivo temporário do editor
-
-.byebug_history 
-# arquivo temporário do editor
+# Sistema operacional
+.DS_Store
+Thumbs.db
