@@ -33,4 +33,27 @@ class PositionsTest < ActionDispatch::IntegrationTest
 
     assert_response :not_found
   end
+
+  test "lista grade em ordem linha a linha" do
+    get box_positions_url(@box), as: :json
+
+    labels = JSON.parse(response.body).map { |position| position["label"] }
+    assert_equal %w[A1 A2 B1 B2], labels
+  end
+
+  test "mostra celulas livres e ocupadas na mesma grade" do
+    occupy(@box, "A", 1, codigo_amostra: "GRID-001")
+    occupy(@box, "B", 2, codigo_amostra: "GRID-002")
+
+    get box_positions_url(@box), as: :json
+
+    body = JSON.parse(response.body)
+    by_label = body.index_by { |position| position["label"] }
+
+    assert by_label["A1"]["occupied"]
+    assert_not by_label["A2"]["occupied"]
+    assert_not by_label["B1"]["occupied"]
+    assert by_label["B2"]["occupied"]
+    assert_nil by_label["A2"]["sample"]
+  end
 end

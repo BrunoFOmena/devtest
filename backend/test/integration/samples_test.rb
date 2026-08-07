@@ -107,4 +107,116 @@ class SamplesTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_equal [], JSON.parse(response.body)
   end
+
+  test "search retorna vazio com query em branco" do
+    occupy(@box, "A", 1, codigo_amostra: "AMO-BLANK")
+
+    get search_samples_url(q: "   "), as: :json
+
+    assert_response :success
+    assert_equal [], JSON.parse(response.body)
+  end
+
+  test "create aceita concentracao vazia" do
+    post samples_url,
+         params: {
+           sample: {
+             codigo_amostra: "AMO-NIL",
+             paciente_nome: "Maria",
+             material: "DNA",
+             concentracao_ng_ul: nil
+           }
+         },
+         as: :json
+
+    assert_response :created
+    assert_nil JSON.parse(response.body)["concentracao_ng_ul"]
+  end
+
+  test "create rejeita concentracao negativa" do
+    post samples_url,
+         params: {
+           sample: {
+             codigo_amostra: "AMO-NEG",
+             paciente_nome: "Maria",
+             material: "DNA",
+             concentracao_ng_ul: -0.1
+           }
+         },
+         as: :json
+
+    assert_response :unprocessable_entity
+    assert JSON.parse(response.body).key?("errors")
+  end
+
+  test "create rejeita body vazio" do
+    post samples_url, params: {}, as: :json
+
+    assert_response :unprocessable_entity
+    assert JSON.parse(response.body).key?("error")
+  end
+
+  test "create ignora position_id enviado no body" do
+    other_box = create_box(rows: 1, columns: 1, name: "Outra")
+    forced_position = other_box.positions.first
+
+    post samples_url,
+         params: {
+           sample: {
+             codigo_amostra: "AMO-FORCE",
+             paciente_nome: "Maria",
+             material: "DNA",
+             position_id: forced_position.id
+           }
+         },
+         as: :json
+
+    assert_response :created
+    body = JSON.parse(response.body)
+    assert_equal "A1", body["label"]
+    assert_equal @box.name, body["box"]
+    assert_not_equal forced_position.id, body["position_id"]
+  end
+
+  test "create retorna erro quando nao ha vaga" do
+    occupy(@box, "A", 1)
+    occupy(@box, "A", 2)
+    occupy(@box, "B", 1)
+    occupy(@box, "B", 2)
+
+    post samples_url,
+         params: {
+           sample: {
+             codigo_amostra: "AMO-FULL",
+             paciente_nome: "Maria",
+             material: "DNA"
+           }
+         },
+         as: :json
+
+    assert_response :unprocessable_entity
+    assert_equal SampleAllocator::FULL_MESSAGE, JSON.parse(response.body)["error"]
+  end
+
+  test "suggest nao cria amostra" do
+    assert_no_difference -> { Sample.count } do
+      post suggest_samples_url, as: :json
+    end
+
+    assert_response :success
+  end
+
+  test "create rejeita codigo vazio" do
+    post samples_url,
+         params: {
+           sample: {
+             codigo_amostra: "",
+             paciente_nome: "Maria",
+             material: "DNA"
+           }
+         },
+         as: :json
+
+    assert_response :unprocessable_entity
+  end
 end

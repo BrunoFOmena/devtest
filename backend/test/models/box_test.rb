@@ -48,4 +48,25 @@ class BoxTest < ActiveSupport::TestCase
     assert_equal box.positions.find_by!(row: "A", column: 2), second
     assert_nil SampleAllocator.call
   end
+
+  test "destroy remove posicoes e amostras da caixa" do
+    box = create_box(rows: 1, columns: 2)
+    occupy(box, "A", 1, codigo_amostra: "BOX-DEL-001")
+
+    assert_difference -> { Box.count }, -1 do
+      assert_difference -> { Position.count }, -2 do
+        assert_difference -> { Sample.count }, -1 do
+          box.destroy!
+        end
+      end
+    end
+  end
+
+  test "rejeita rows nao inteiro" do
+    drawer = create_drawer
+    box = drawer.boxes.new(name: "Caixa", rows: 1.5, columns: 2)
+
+    assert_not box.valid?
+    assert_includes box.errors[:rows], "must be an integer"
+  end
 end

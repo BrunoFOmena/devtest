@@ -68,4 +68,39 @@ class SampleAllocatorTest < ActiveSupport::TestCase
   test "expoe mensagem para caixa cheia" do
     assert_equal "abrir nova caixa", SampleAllocator::FULL_MESSAGE
   end
+
+  test "retorna nil quando nao existe nenhuma caixa" do
+    assert_nil SampleAllocator.call
+  end
+
+  test "preenche buraco no meio da grade" do
+    box = create_box(rows: 2, columns: 2)
+    occupy(box, "A", 2)
+    occupy(box, "B", 1)
+
+    position = SampleAllocator.call
+
+    assert_equal box.positions.find_by!(row: "A", column: 1), position
+  end
+
+  test "pula celulas ocupadas e segue na mesma caixa" do
+    box = create_box(rows: 2, columns: 2)
+    occupy(box, "A", 1)
+    occupy(box, "A", 2)
+
+    position = SampleAllocator.call
+
+    assert_equal box.positions.find_by!(row: "B", column: 1), position
+  end
+
+  test "ignora caixa cheia antiga e usa buraco em caixa mais nova" do
+    older = create_box(rows: 1, columns: 1, created_at: 2.days.ago, name: "Antiga")
+    newer = create_box(rows: 2, columns: 1, created_at: 1.day.ago, name: "Nova")
+    occupy(older, "A", 1)
+    occupy(newer, "A", 1)
+
+    position = SampleAllocator.call
+
+    assert_equal newer.positions.find_by!(row: "B", column: 1), position
+  end
 end

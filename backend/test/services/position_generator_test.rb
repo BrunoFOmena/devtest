@@ -42,4 +42,13 @@ class PositionGeneratorTest < ActiveSupport::TestCase
       PositionGenerator.call(box)
     end
   end
+
+  test "caixa 8x12 gera 96 posicoes de laboratorio" do
+    box = create_box(rows: 8, columns: 12)
+
+    assert_equal 96, box.positions.count
+    assert box.positions.exists?(row: "A", column: 1)
+    assert box.positions.exists?(row: "H", column: 12)
+    assert_not box.positions.exists?(row: "I", column: 1)
+  end
 end

@@ -60,4 +60,26 @@ class RoomsTest < ActionDispatch::IntegrationTest
 
     assert_response :no_content
   end
+
+  test "remove sala apaga hierarquia inteira pela API" do
+    box = create_box(rows: 1, columns: 1)
+    occupy(box, "A", 1, codigo_amostra: "ROOM-DEL-001")
+    room = box.drawer.freezer.room
+
+    delete room_url(room), as: :json
+
+    assert_response :no_content
+    assert_equal 0, Freezer.count
+    assert_equal 0, Drawer.count
+    assert_equal 0, Box.count
+    assert_equal 0, Position.count
+    assert_equal 0, Sample.count
+  end
+
+  test "rejeita create com body vazio" do
+    post rooms_url, params: {}, as: :json
+
+    assert_response :unprocessable_entity
+    assert JSON.parse(response.body).key?("error")
+  end
 end

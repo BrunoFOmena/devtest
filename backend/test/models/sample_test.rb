@@ -70,4 +70,58 @@ class SampleTest < ActiveSupport::TestCase
     assert_includes sample.errors[:paciente_nome], "can't be blank"
     assert_includes sample.errors[:material], "can't be blank"
   end
+
+  test "rejeita codigo_amostra vazio" do
+    box = create_box(rows: 1, columns: 1)
+
+    sample = Sample.new(
+      position: box.positions.first,
+      codigo_amostra: "",
+      paciente_nome: "Maria",
+      material: "DNA"
+    )
+
+    assert_not sample.valid?
+    assert_includes sample.errors[:codigo_amostra], "can't be blank"
+  end
+
+  test "aceita concentracao zero" do
+    box = create_box(rows: 1, columns: 1)
+
+    sample = Sample.new(
+      position: box.positions.first,
+      codigo_amostra: "AMO-ZERO",
+      paciente_nome: "Maria",
+      material: "DNA",
+      concentracao_ng_ul: 0
+    )
+
+    assert sample.valid?
+  end
+
+  test "exige position" do
+    sample = Sample.new(
+      codigo_amostra: "AMO-004",
+      paciente_nome: "Maria",
+      material: "DNA"
+    )
+
+    assert_not sample.valid?
+    assert_includes sample.errors[:position], "must exist"
+  end
+
+  test "campos opcionais exame e observacao podem ficar vazios" do
+    box = create_box(rows: 1, columns: 1)
+
+    sample = Sample.new(
+      position: box.positions.first,
+      codigo_amostra: "AMO-OPC",
+      paciente_nome: "Maria",
+      material: "DNA",
+      exame: nil,
+      observacao: nil
+    )
+
+    assert sample.valid?
+  end
 end

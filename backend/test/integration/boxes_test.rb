@@ -64,4 +64,22 @@ class BoxesTest < ActionDispatch::IntegrationTest
 
     assert_response :no_content
   end
+
+  test "cria caixa 8x12 com 96 posicoes" do
+    post drawer_boxes_url(@drawer),
+         params: { box: { name: "Caixa Lab", rows: 8, columns: 12 } },
+         as: :json
+
+    assert_response :created
+    box = Box.last
+    assert_equal 96, box.positions.count
+  end
+
+  test "rejeita caixa sem nome" do
+    post drawer_boxes_url(@drawer),
+         params: { box: { name: "", rows: 2, columns: 2 } },
+         as: :json
+
+    assert_response :unprocessable_entity
+  end
 end
