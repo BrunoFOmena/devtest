@@ -1,59 +1,76 @@
-require "test_helper"
+require "test_helper" #carrega setup global
 
-class FreezersTest < ActionDispatch::IntegrationTest
-  fixtures []
+class FreezersTest < ActionDispatch::IntegrationTest #CRUD de freezers pela API
+  fixtures [] #nao usa fixtures YAML
 
   setup do
-    @room = Room.create!(name: "Sala 1")
+    @room = Room.create!(name: "Sala 1") #sala pai pra todos os testes
   end
 
-  test "lista freezers da sala" do
-    get room_freezers_url(@room), as: :json
+  test "lista freezers da sala" do #GET index
+    get room_freezers_url(@room), as: :json #lista nested
 
-    assert_response :success
-    assert_equal [], JSON.parse(response.body)
+    assert_response :success #200
+    assert_equal [], JSON.parse(response.body) #ainda vazio
   end
 
-  test "cria freezer na sala" do
-    assert_difference -> { @room.freezers.count }, 1 do
-      post room_freezers_url(@room), params: { freezer: { name: "Freezer A" } }, as: :json
+  test "cria freezer na sala" do #POST create
+    assert_difference -> { @room.freezers.count }, 1 do #espera +1
+      post room_freezers_url(@room), params: { freezer: { name: "Freezer A" } }, as: :json #cria
     end
 
-    assert_response :created
-    assert_equal "Freezer A", JSON.parse(response.body)["name"]
+    assert_response :created #201
+    assert_equal "Freezer A", JSON.parse(response.body)["name"] #nome gravado
   end
 
-  test "rejeita freezer sem nome" do
-    post room_freezers_url(@room), params: { freezer: { name: "" } }, as: :json
+  test "rejeita freezer sem nome" do #validacao
+    post room_freezers_url(@room), params: { freezer: { name: "" } }, as: :json #nome vazio
 
-    assert_response :unprocessable_entity
+    assert_response :unprocessable_entity #422
   end
 
-  test "mostra freezer da sala" do
-    freezer = @room.freezers.create!(name: "Freezer B")
+  test "mostra freezer da sala" do #GET show
+    freezer = @room.freezers.create!(name: "Freezer B") #cria direto
 
-    get room_freezer_url(@room, freezer), as: :json
+    get room_freezer_url(@room, freezer), as: :json #busca nested
 
-    assert_response :success
-    assert_equal freezer.id, JSON.parse(response.body)["id"]
+    assert_response :success #200
+    assert_equal freezer.id, JSON.parse(response.body)["id"] #mesmo id
   end
 
-  test "atualiza freezer" do
-    freezer = @room.freezers.create!(name: "Antigo")
+  test "atualiza freezer" do #PATCH rename
+    freezer = @room.freezers.create!(name: "Antigo") #nome inicial
 
-    patch room_freezer_url(@room, freezer), params: { freezer: { name: "Novo" } }, as: :json
+    patch room_freezer_url(@room, freezer), params: { freezer: { name: "Novo" } }, as: :json #renomeia
 
-    assert_response :success
-    assert_equal "Novo", freezer.reload.name
+    assert_response :success #200
+    assert_equal "Novo", freezer.reload.name #nome atualizado
   end
 
-  test "remove freezer" do
-    freezer = @room.freezers.create!(name: "Remover")
+  test "move freezer para outra sala" do #PATCH com room_id
+    other = Room.create!(name: "Sala 2") #destino
+    freezer = @room.freezers.create!(name: "Movel") #alvo
 
-    assert_difference -> { Freezer.count }, -1 do
-      delete room_freezer_url(@room, freezer), as: :json
+    patch room_freezer_url(@room, freezer),
+          params: { freezer: { room_id: other.id } }, #troca de sala
+          as: :json
+
+    assert_response :success #200
+    freezer.reload #recarrega
+    assert_equal other.id, freezer.room_id #room novo
+    assert_includes other.freezers.kept, freezer #aparece no destino
+    assert_not_includes @room.freezers.kept, freezer #sai da origem
+  end
+
+
+  test "remove freezer" do #DELETE soft delete
+    freezer = @room.freezers.create!(name: "Remover") #alvo
+
+    assert_no_difference -> { Freezer.count } do #nao apaga de verdade
+      delete room_freezer_url(@room, freezer), as: :json #manda pra lixeira
     end
 
-    assert_response :no_content
+    assert_response :no_content #204
+    assert freezer.reload.discarded? #soft deleted
   end
 end

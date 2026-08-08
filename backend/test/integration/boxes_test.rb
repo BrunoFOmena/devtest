@@ -1,85 +1,102 @@
-require "test_helper"
+require "test_helper" #carrega setup global
 
-class BoxesTest < ActionDispatch::IntegrationTest
-  fixtures []
+class BoxesTest < ActionDispatch::IntegrationTest #CRUD de caixas pela API
+  fixtures [] #nao usa fixtures YAML
 
   setup do
-    room = Room.create!(name: "Sala 1")
-    freezer = room.freezers.create!(name: "Freezer A")
-    @drawer = freezer.drawers.create!(name: "Gaveta 1")
+    room = Room.create!(name: "Sala 1") #sala pai
+    freezer = room.freezers.create!(name: "Freezer A") #freezer pai
+    @drawer = freezer.drawers.create!(name: "Gaveta 1") #gaveta pai
   end
 
-  test "lista caixas da gaveta" do
-    get drawer_boxes_url(@drawer), as: :json
+  test "lista caixas da gaveta" do #GET index
+    get drawer_boxes_url(@drawer), as: :json #lista nested
 
-    assert_response :success
-    assert_equal [], JSON.parse(response.body)
+    assert_response :success #200
+    assert_equal [], JSON.parse(response.body) #ainda vazio
   end
 
-  test "cria caixa e gera posicoes" do
-    assert_difference -> { @drawer.boxes.count }, 1 do
+  test "cria caixa e gera posicoes" do #POST + PositionGenerator
+    assert_difference -> { @drawer.boxes.count }, 1 do #espera +1 caixa
       post drawer_boxes_url(@drawer),
-           params: { box: { name: "Caixa 1", rows: 2, columns: 3 } },
+           params: { box: { name: "Caixa 1", rows: 2, columns: 3 } }, #2x3
            as: :json
     end
 
-    assert_response :created
+    assert_response :created #201
 
-    box = Box.last
-    assert_equal 6, box.positions.count
+    box = Box.last #caixa criada
+    assert_equal 6, box.positions.count #2*3 = 6 celulas
   end
 
-  test "rejeita caixa com rows invalido" do
+  test "rejeita caixa com rows invalido" do #rows > 0
     post drawer_boxes_url(@drawer),
-         params: { box: { name: "Caixa", rows: 0, columns: 2 } },
+         params: { box: { name: "Caixa", rows: 0, columns: 2 } }, #rows zero
          as: :json
 
-    assert_response :unprocessable_entity
+    assert_response :unprocessable_entity #422
   end
 
-  test "mostra caixa da gaveta" do
-    box = @drawer.boxes.create!(name: "Caixa 2", rows: 1, columns: 1)
+  test "mostra caixa da gaveta" do #GET show
+    box = @drawer.boxes.create!(name: "Caixa 2", rows: 1, columns: 1) #cria direto
 
-    get drawer_box_url(@drawer, box), as: :json
+    get drawer_box_url(@drawer, box), as: :json #busca nested
 
-    assert_response :success
-    assert_equal box.id, JSON.parse(response.body)["id"]
+    assert_response :success #200
+    assert_equal box.id, JSON.parse(response.body)["id"] #mesmo id
   end
 
-  test "atualiza caixa" do
-    box = @drawer.boxes.create!(name: "Antiga", rows: 1, columns: 1)
+  test "atualiza caixa" do #PATCH rename
+    box = @drawer.boxes.create!(name: "Antiga", rows: 1, columns: 1) #nome inicial
 
-    patch drawer_box_url(@drawer, box), params: { box: { name: "Nova" } }, as: :json
+    patch drawer_box_url(@drawer, box), params: { box: { name: "Nova" } }, as: :json #renomeia
 
-    assert_response :success
-    assert_equal "Nova", box.reload.name
+    assert_response :success #200
+    assert_equal "Nova", box.reload.name #nome atualizado
   end
 
-  test "remove caixa" do
-    box = @drawer.boxes.create!(name: "Remover", rows: 1, columns: 1)
+  test "move caixa para outra gaveta" do #PATCH com drawer_id
+    other = @drawer.freezer.drawers.create!(name: "Gaveta 2") #destino
+    box = @drawer.boxes.create!(name: "Movel", rows: 1, columns: 1) #alvo
 
-    assert_difference -> { Box.count }, -1 do
-      delete drawer_box_url(@drawer, box), as: :json
+    patch drawer_box_url(@drawer, box),
+          params: { box: { drawer_id: other.id } }, #troca de gaveta
+          as: :json
+
+    assert_response :success #200
+    box.reload #recarrega
+    assert_equal other.id, box.drawer_id #gaveta nova
+    assert_includes other.boxes.kept, box #aparece no destino
+    assert_not_includes @drawer.boxes.kept, box #sai da origem
+  end
+
+
+  test "remove caixa" do #DELETE soft delete
+    box = @drawer.boxes.create!(name: "Remover", rows: 1, columns: 1) #alvo
+
+    assert_no_difference -> { Box.count } do #nao apaga de verdade
+      delete drawer_box_url(@drawer, box), as: :json #manda pra lixeira
     end
 
-    assert_response :no_content
+    assert_response :no_content #204
+    assert box.reload.discarded? #soft deleted
   end
 
-  test "cria caixa 8x12 com 96 posicoes" do
+  test "cria caixa 8x12 com 96 posicoes" do #tamanho padrao lab
     post drawer_boxes_url(@drawer),
-         params: { box: { name: "Caixa Lab", rows: 8, columns: 12 } },
+         params: { box: { name: "Caixa Lab", rows: 8, columns: 12 } }, #8x12
          as: :json
 
-    assert_response :created
-    box = Box.last
-    assert_equal 96, box.positions.count
+    assert_response :created #201
+    box = Box.last #caixa criada
+    assert_equal 96, box.positions.count #8*12 = 96
   end
 
-  test "rejeita caixa sem nome" do
+  test "rejeita caixa sem nome" do #validacao
     post drawer_boxes_url(@drawer),
-         params: { box: { name: "", rows: 2, columns: 2 } },
+         params: { box: { name: "", rows: 2, columns: 2 } }, #nome vazio
          as: :json
 
-    assert_response :unprocessable_entity
+    assert_response :unprocessable_entity #422
   end
 end
