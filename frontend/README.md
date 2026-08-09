@@ -1,32 +1,78 @@
-# React + TypeScript + Vite
+# Frontend — React + Vite + TypeScript
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Interface da bancada para o inventário de microtubos de DNA. Consome a API Rails em `VITE_API_URL`.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- React 19 + TypeScript
+- Vite 8
+- Tailwind CSS 4
+- React Router
+- Oxlint
 
-## React Compiler
+## Pré-requisitos
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Node.js 20+ e npm
+- API backend rodando (veja o README da raiz ou `backend/README.md`)
 
-## Expanding the Oxlint configuration
+## Subir o projeto
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+cp .env.example .env
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Abra [http://localhost:5173](http://localhost:5173).
+
+Conteúdo típico do `.env`:
+
+```
+VITE_API_URL=http://localhost:3000
+```
+
+## Scripts
+
+| Comando | Uso |
+|---|---|
+| `npm run dev` | servidor de desenvolvimento |
+| `npm run build` | build de produção (`tsc` + Vite) |
+| `npm run preview` | preview do build |
+| `npm run lint` | Oxlint |
+
+## Telas
+
+| Rota | Página | Função |
+|---|---|---|
+| `/amostras/nova` | Nova amostra | Cadastro com sugestão first-fit; aceitar automático ou restringir escopo; confirma concentração vazia |
+| `/estrutura` | Estrutura física | Árvore sala → freezer → gaveta → caixa → mapa; criar, renomear, mover, lixeira; busca e destaque do caminho |
+| `/tabela` | Tabela | Lista amostras com filtros de localização e concentração vazia |
+| `/importar-csv` | Importar CSV | Preview (ok / erro / duplicata), ajuste e commit na API |
+| `/lixeira` | Lixeira | Lista itens soft-deletados e restaura |
+
+## Organização do código
+
+```
+src/
+├── api/           client HTTP + funções da API (resources.ts)
+├── components/    Layout, modais, BoxMap, LocationTrail, etc.
+├── pages/         telas das rotas acima
+├── types/         tipos TypeScript alinhados à API
+├── App.tsx        rotas
+└── index.css      estilos / Tailwind
+```
+
+## Fluxo típico na UI
+
+1. Garanta que a API está em `http://localhost:3000` (idealmente após `db:seed`).
+2. Em **Estrutura**, confira salas/freezers ou crie novos (botão `+`).
+3. Em **Nova amostra**, preencha os campos e confirme a posição sugerida.
+4. Use a busca na estrutura ou a **Tabela** para achar uma amostra.
+5. Abra uma caixa no mapa para ver a grade (clique na célula para a ficha).
+6. **Importar CSV** para carga histórica; **Lixeira** para desfazer exclusões da hierarquia.
+
+## Observações
+
+- O frontend não escolhe a célula (A1, B2…): a API aloca. A UI só pode limitar o **escopo** da busca de vaga.
+- Excluir na estrutura envia para a lixeira (recuperável), não apaga amostras diretamente.
+- Sem autenticação nesta versão (API aberta em desenvolvimento local).
