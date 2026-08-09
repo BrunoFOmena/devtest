@@ -137,7 +137,7 @@ export default function LocationSuggestionModal({
                       type="button"
                       disabled={submitting}
                       onClick={() => onConfirm(scope)} //confirma com o scope atual
-                      className="rounded-lg bg-violet-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-violet-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+                      className="rounded-lg bg-brand-400 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-slate-300"
                     >
                       {submitting ? "Salvando..." : "Confirmar Localização"}
                     </button>

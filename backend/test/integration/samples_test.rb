@@ -248,4 +248,19 @@ class SamplesTest < ActionDispatch::IntegrationTest #API de amostras
 
     assert_response :unprocessable_entity #422
   end
+
+  test "destroy apaga amostra e libera posicao" do #DELETE /samples/:id
+    box = create_box(rows: 1, columns: 1) #caixa 1x1
+    sample = occupy(box, "A", 1, codigo_amostra: "DEL-SAMPLE-1") #ocupa A1
+    position = sample.position #guarda posicao
+
+    assert_difference -> { Sample.count }, -1 do #espera -1 amostra
+      delete sample_url(sample), as: :json #apaga
+    end
+
+    assert_response :no_content #204
+    assert_nil Sample.find_by(id: sample.id) #sumiu
+    assert_nil position.reload.sample #posicao livre de novo
+  end
 end
+

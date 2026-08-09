@@ -1,5 +1,7 @@
 # Soft-delete e restauracao da hierarquia fisica (sala → freezer → gaveta → caixa).
+# FORA DO MVP: controllers usam destroy! definitivo; este service fica para implementação futura.
 class HierarchyTrash #service da lixeira da estrutura fisica
+
   def self.discard!(record) #atalho para descartar um registro
     new.discard!(record)
   end

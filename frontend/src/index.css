@@ -1,7 +1,29 @@
 @import "tailwindcss"; /* liga o Tailwind CSS */
 
+/* Identidade visual NeoGenomica: navy + teal (mock de produto). */
+@theme {
+  --font-sans: "DM Sans", "Segoe UI", sans-serif;
+
+  --color-navy-800: #152a3d;
+  --color-navy-900: #0c1d2e;
+  --color-navy-950: #081420;
+
+  --color-brand-50: #f0f7f8;
+  --color-brand-100: #d9ecee;
+  --color-brand-200: #b3d9dd;
+  --color-brand-300: #8cc5cc;
+  --color-brand-400: #72b1b8;
+  --color-brand-500: #5a9aa1;
+  --color-brand-600: #4a848b;
+  --color-brand-700: #3a6b71;
+  --color-brand-800: #2c5257;
+  --color-brand-900: #1e3a3e;
+}
+
 body { /* estilo base da pagina */
   margin: 0; /* remove margem padrao do browser */
-  font-family: system-ui, "Segoe UI", Roboto, sans-serif; /* fonte do sistema */
+  font-family: var(--font-sans); /* tipografia da marca */
+  color: var(--color-navy-900);
+  background-color: #f8fafc;
   -webkit-font-smoothing: antialiased; /* texto mais suave no Chrome/Safari */
 }

@@ -74,13 +74,14 @@ class BoxesTest < ActionDispatch::IntegrationTest #CRUD de caixas pela API
   test "remove caixa" do #DELETE soft delete
     box = @drawer.boxes.create!(name: "Remover", rows: 1, columns: 1) #alvo
 
-    assert_no_difference -> { Box.count } do #nao apaga de verdade
-      delete drawer_box_url(@drawer, box), as: :json #manda pra lixeira
+    assert_difference -> { Box.count }, -1 do #apaga do banco
+      delete drawer_box_url(@drawer, box), as: :json #exclusao definitiva (MVP)
     end
 
     assert_response :no_content #204
-    assert box.reload.discarded? #soft deleted
+    assert_nil Box.find_by(id: box.id) #nao existe mais
   end
+
 
   test "cria caixa 8x12 com 96 posicoes" do #tamanho padrao lab
     post drawer_boxes_url(@drawer),

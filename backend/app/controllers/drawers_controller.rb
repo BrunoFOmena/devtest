@@ -31,10 +31,12 @@ class DrawersController < ApplicationController #herda da classe ApplicationCont
     end
   end
 
-  def destroy #metodo para deletar uma gaveta (manda para a lixeira)
-    HierarchyTrash.discard!(@drawer) #descarta a gaveta (soft delete)
-    head :no_content #retorna o status no content
+  def destroy #MVP: exclusao definitiva (cascata via dependent: :destroy)
+    # HierarchyTrash.discard!(@drawer) #FUTURO: soft-delete / lixeira
+    @drawer.destroy! #apaga a gaveta e filhos
+    head :no_content #retorna 204 sem corpo
   end
+
 
   private #metodos privados para nao serem acessados externamente
 

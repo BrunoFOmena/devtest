@@ -8,6 +8,7 @@ import {
   type CsvImportPreview,
   type CsvImportRowData,
 } from "../api/resources"
+import PageHeader from "../components/PageHeader" //titulo padrao da marca
 
 const EDIT_FIELDS: { key: keyof CsvImportRowData; label: string }[] = [ //campos do modal editar
   { key: "sala", label: "Sala" },
@@ -35,15 +36,16 @@ function RowCard({ //card de uma linha do preview
   actions,
 }: {
   item: CsvImportItem
-  tone: "ok" | "error" | "duplicate" //cor do card
+  tone: "ok" | "error" | "duplicate" | "exists" //cor do card
   actions?: React.ReactNode //botoes a direita
 }) {
   const border = //classes de borda/fundo por tom
     tone === "ok"
       ? "border-emerald-200 bg-emerald-50/50" //verde = ok
-      : tone === "duplicate"
-        ? "border-amber-300 bg-amber-50" //amarelo = codigo duplicado
+      : tone === "duplicate" || tone === "exists"
+        ? "border-amber-300 bg-amber-50" //amarelo = codigo no arquivo ou ja no sistema
         : "border-red-300 bg-red-50" //vermelho = erro
+
 
   return (
     <div className={`rounded-lg border px-3 py-2.5 text-sm ${border}`}> {/*card colorido*/}
@@ -214,17 +216,17 @@ export default function ImportCsvPage() { //pagina de importacao CSV
   }
 
   const errors = rejectedVisible.filter((item) => item.status === "error") //so erros
-  const duplicates = rejectedVisible.filter((item) => item.status === "duplicate") //so duplicados
+  const duplicates = rejectedVisible.filter((item) => item.status === "duplicate") //dup no arquivo
+  const alreadyPresent = rejectedVisible.filter((item) => item.status === "exists") //ja no banco
+
 
   return (
     <div className="mx-auto max-w-6xl"> {/*layout largo em 2 colunas*/}
-      <div> {/*cabecalho*/}
-        <h1 className="text-2xl font-semibold text-slate-900">Importar CSV</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Linhas válidas à esquerda. Problemas à direita: vermelho = erro, amarelo = código
-          igual (escolha qual manter). Hierarquia inexistente será criada automaticamente.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Ferramentas"
+        title="Importar CSV"
+        description="Linhas válidas à esquerda. Problemas à direita: vermelho = erro; amarelo = código repetido no arquivo (escolha qual manter) ou ID já presente no sistema (não importa de novo). Hierarquia inexistente será criada automaticamente."
+      />
 
       <div className="mt-6 flex flex-wrap items-center gap-3"> {/*upload*/}
         <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
@@ -255,13 +257,14 @@ export default function ImportCsvPage() { //pagina de importacao CSV
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3"> {/*resumo + importar*/}
             <p className="text-sm text-slate-600">
               {preview.ok.length} ok · {errors.length} erro(s) · {duplicates.length}{" "}
-              código(s) em conflito
+              duplicata(s) no arquivo · {alreadyPresent.length} já no sistema
             </p>
+
             <button
               type="button"
               disabled={importing || preview.ok.length === 0} //precisa ter ok
               onClick={handleImport} //commit
-              className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700 disabled:bg-slate-300"
+              className="rounded-lg bg-brand-400 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500 disabled:bg-slate-300"
             >
               {importing
                 ? "Importando..."
@@ -270,7 +273,7 @@ export default function ImportCsvPage() { //pagina de importacao CSV
           </div>
 
           <div className="mt-4 grid gap-4 lg:grid-cols-2"> {/*duas colunas*/}
-            <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"> {/*coluna OK*/}
+            <section className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm"> {/*coluna OK*/}
               <h2 className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
                 Dados OK
               </h2>
@@ -297,12 +300,13 @@ export default function ImportCsvPage() { //pagina de importacao CSV
               </div>
             </section>
 
-            <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"> {/*coluna rejeitados*/}
+            <section className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm"> {/*coluna rejeitados*/}
               <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-700">
                 Rejeitados
               </h2>
               <p className="mt-1 text-xs text-slate-500">
-                Vermelho: corrija ou descarte. Amarelo: escolha qual código manter.
+                Vermelho: corrija ou descarte. Amarelo (arquivo): escolha qual manter. Amarelo
+                (já no sistema): ID presente — não será importado.
               </p>
               <div className="mt-3 max-h-[28rem] space-y-2 overflow-y-auto">
                 {rejectedVisible.length === 0 && (
@@ -312,25 +316,40 @@ export default function ImportCsvPage() { //pagina de importacao CSV
                   <RowCard
                     key={itemKey(item)}
                     item={item}
-                    tone={item.status === "duplicate" ? "duplicate" : "error"} //cor por status
+                    tone={
+                      item.status === "duplicate" || item.status === "exists"
+                        ? item.status //amarelo
+                        : "error" //vermelho
+                    }
                     actions={
                       <div className="flex flex-col gap-1"> {/*acoes empilhadas*/}
                         {item.status === "duplicate" && (
                           <button
                             type="button"
-                            onClick={() => keepDuplicate(item)} //mantem este codigo
+                            onClick={() => keepDuplicate(item)} //so para dup no arquivo
                             className="rounded bg-amber-500 px-2 py-1 text-xs font-semibold text-white hover:bg-amber-600"
                           >
                             Manter esta
                           </button>
                         )}
-                        <button
-                          type="button"
-                          onClick={() => openEdit(item)} //edita rejeitado
-                          className="rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600 hover:bg-slate-50"
-                        >
-                          Editar
-                        </button>
+                        {item.status !== "exists" && ( //ja no sistema: editar codigo se quiser
+                          <button
+                            type="button"
+                            onClick={() => openEdit(item)} //edita rejeitado
+                            className="rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600 hover:bg-slate-50"
+                          >
+                            Editar
+                          </button>
+                        )}
+                        {item.status === "exists" && (
+                          <button
+                            type="button"
+                            onClick={() => openEdit(item)} //pode alterar o codigo e revalidar
+                            className="rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600 hover:bg-slate-50"
+                          >
+                            Alterar código
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => discardItem(item)} //some da lista
@@ -343,6 +362,7 @@ export default function ImportCsvPage() { //pagina de importacao CSV
                   />
                 ))}
               </div>
+
             </section>
           </div>
         </>
@@ -374,7 +394,7 @@ export default function ImportCsvPage() { //pagina de importacao CSV
                         current ? { ...current, [key]: e.target.value } : current, //atualiza draft
                       )
                     }
-                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-violet-500 focus:outline-none"
+                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
                   />
                 </label>
               ))}
@@ -393,7 +413,7 @@ export default function ImportCsvPage() { //pagina de importacao CSV
               <button
                 type="button"
                 onClick={saveEdit} //salva e revalida
-                className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700"
+                className="rounded-lg bg-brand-400 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500"
               >
                 Salvar e revalidar
               </button>

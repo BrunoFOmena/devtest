@@ -1,15 +1,48 @@
+import { useState } from "react" //estado do botao apagar
+import { ApiError } from "../api/client" //erro tipado da API
+import { deleteSample } from "../api/resources" //DELETE /samples/:id
 import type { SampleWithLocation } from "../types/api" //amostra + path
 
 interface SampleDetailModalProps { //props da ficha
   sample: SampleWithLocation //dados pra mostrar
   onClose: () => void //fecha modal
+  onDeleted?: (sampleId: number) => void //callback apos exclusao (opcional)
 }
 
-export default function SampleDetailModal({ sample, onClose }: SampleDetailModalProps) {
+export default function SampleDetailModal({
+  sample,
+  onClose,
+  onDeleted,
+}: SampleDetailModalProps) {
+  const [deleting, setDeleting] = useState(false) //apagando amostra
+  const [error, setError] = useState<string | null>(null) //erro ao apagar
+
   const missingConc = //concentracao vazia / null
     sample.concentracao_ng_ul === null ||
     sample.concentracao_ng_ul === undefined ||
     String(sample.concentracao_ng_ul).trim() === ""
+
+  async function handleDelete() { //confirma e apaga a amostra
+    if (
+      !window.confirm(
+        `Excluir a amostra "${sample.codigo_amostra}"? A posição ${sample.label} ficará livre. Esta ação não pode ser desfeita.`,
+      )
+    ) {
+      return //cancelou
+    }
+
+    setDeleting(true) //desativa botao
+    setError(null) //limpa erro
+    try {
+      await deleteSample(sample.id) //DELETE na API
+      onDeleted?.(sample.id) //avisa o pai (tabela/estrutura)
+      onClose() //fecha a ficha
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Não foi possível excluir a amostra.")
+    } finally {
+      setDeleting(false) //libera botao
+    }
+  }
 
   return (
     <div
@@ -23,10 +56,10 @@ export default function SampleDetailModal({ sample, onClose }: SampleDetailModal
         className="w-full max-w-lg overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl"
         onClick={(e) => e.stopPropagation()} //clique dentro nao fecha
       >
-        <div className="border-b border-teal-100 bg-teal-50 px-6 py-4"> {/*cabecalho teal*/}
+        <div className="border-b border-brand-100 bg-brand-50 px-6 py-4"> {/*cabecalho teal*/}
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-teal-700">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-brand-700">
                 Ficha da amostra {/*subtitulo*/}
               </p>
               <h2
@@ -39,7 +72,7 @@ export default function SampleDetailModal({ sample, onClose }: SampleDetailModal
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg border border-teal-200 bg-white px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50"
+              className="rounded-lg border border-brand-200 bg-white px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50"
             >
               Fechar
             </button>
@@ -88,13 +121,28 @@ export default function SampleDetailModal({ sample, onClose }: SampleDetailModal
             </dt>
             <dd className="mt-1 font-medium text-slate-800">{sample.observacao || "—"}</dd>
           </div>
-          <div className="sm:col-span-2 rounded-lg border border-teal-100 bg-teal-50/80 px-3 py-3"> {/*bloco localizacao*/}
-            <dt className="text-xs font-medium uppercase tracking-wide text-teal-600">
+          <div className="sm:col-span-2 rounded-lg border border-brand-100 bg-brand-50/80 px-3 py-3"> {/*bloco localizacao*/}
+            <dt className="text-xs font-medium uppercase tracking-wide text-brand-600">
               Localização
             </dt>
-            <dd className="mt-1 font-medium text-teal-900">{sample.path}</dd> {/*caminho completo*/}
+            <dd className="mt-1 font-medium text-brand-900">{sample.path}</dd> {/*caminho completo*/}
           </div>
         </dl>
+
+        {error && ( //erro ao apagar
+          <p className="px-6 pb-2 text-sm text-red-600">{error}</p>
+        )}
+
+        <div className="flex justify-end gap-2 border-t border-slate-100 px-6 py-4"> {/*acoes*/}
+          <button
+            type="button"
+            disabled={deleting}
+            onClick={handleDelete} //apaga amostra
+            className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 disabled:opacity-50"
+          >
+            {deleting ? "Excluindo..." : "Excluir amostra"}
+          </button>
+        </div>
       </div>
     </div>
   )

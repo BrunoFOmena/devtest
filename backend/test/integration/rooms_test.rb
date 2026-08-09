@@ -51,32 +51,32 @@ class RoomsTest < ActionDispatch::IntegrationTest #CRUD de salas pela API
     assert_equal "Nova", room.reload.name #nome atualizado
   end
 
-  test "remove sala" do #DELETE soft delete
+  test "remove sala" do #DELETE definitivo (MVP; lixeira fica para o futuro)
     room = Room.create!(name: "Remover") #alvo
 
-    assert_no_difference -> { Room.count } do #nao apaga de verdade
-      delete room_url(room), as: :json #manda pra lixeira
+    assert_difference -> { Room.count }, -1 do #apaga do banco
+      delete room_url(room), as: :json #exclusao definitiva
     end
 
     assert_response :no_content #204
-    assert room.reload.discarded? #soft deleted
-    assert_equal 0, Room.kept.count #some do kept
+    assert_nil Room.find_by(id: room.id) #nao existe mais
   end
 
-  test "remove sala move hierarquia para lixeira pela API" do #cascata soft delete
+  test "remove sala apaga hierarquia em cascata pela API" do #cascata hard delete
     box = create_box(rows: 1, columns: 1) #monta hierarquia
     occupy(box, "A", 1, codigo_amostra: "ROOM-DEL-001") #amostra ligada
     room = box.drawer.freezer.room #sala raiz
 
-    delete room_url(room), as: :json #descarta sala
+    delete room_url(room), as: :json #apaga sala
 
     assert_response :no_content #204
-    assert_equal 0, Room.kept.count #sala na lixeira
-    assert_equal 0, Freezer.kept.count #freezer tambem
-    assert_equal 0, Drawer.kept.count #gaveta tambem
-    assert_equal 0, Box.kept.count #caixa tambem
-    assert Sample.exists?(codigo_amostra: "ROOM-DEL-001") #amostra fica no banco
+    assert_equal 0, Room.count #sala apagada
+    assert_equal 0, Freezer.count #freezer tambem
+    assert_equal 0, Drawer.count #gaveta tambem
+    assert_equal 0, Box.count #caixa tambem
+    assert_not Sample.exists?(codigo_amostra: "ROOM-DEL-001") #amostra some com a posicao
   end
+
 
   test "rejeita create com body vazio" do #params sem room
     post rooms_url, params: {}, as: :json #body vazio

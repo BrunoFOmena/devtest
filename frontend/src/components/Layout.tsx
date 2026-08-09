@@ -1,56 +1,55 @@
 import { NavLink, Outlet } from "react-router-dom" //rotas e area onde a pagina aparece
 
-function linkClasses(isActive: boolean): string { //monta classes do item do menu
-  return [
-    "block rounded-lg px-3 py-2 text-sm transition-colors", //base visual do link
-    isActive
-      ? "bg-violet-600 text-white font-medium" //ativo: destaque roxo
-      : "text-slate-300 hover:bg-slate-800 hover:text-white", //inativo: cinza com hover
-  ].join(" ") //junta num unico className
+function navClass({ isActive }: { isActive: boolean }): string { //estilo do item do menu
+  // className no NavLink com strings literais: Tailwind precisa ver as classes no fonte
+  return isActive
+    ? "block rounded-lg bg-brand-400 px-3 py-2.5 text-sm font-medium text-white transition-colors"
+    : "block rounded-lg px-3 py-2.5 text-sm text-slate-200 transition-colors hover:bg-navy-800 hover:text-white"
 }
 
 export default function Layout() { //shell com sidebar + conteudo
   return (
-    <div className="flex min-h-screen bg-slate-50"> {/*tela inteira em duas colunas*/}
-      <aside className="flex w-60 shrink-0 flex-col border-r border-slate-800 bg-slate-900 px-4 py-6"> {/*menu lateral escuro*/}
-        <div className="mb-8 flex items-center gap-2.5 px-2"> {/*marca do produto*/}
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-600 text-sm font-bold text-white">
-            DNA {/*sigla no badge*/}
+    <div className="flex min-h-screen bg-slate-50 font-sans"> {/*tela inteira em duas colunas*/}
+      <aside className="flex w-60 shrink-0 flex-col bg-navy-900 px-4 py-6"> {/*menu lateral navy*/}
+        <div className="mb-10 flex items-center gap-2.5 px-2"> {/*marca do produto*/}
+          <span className="flex h-9 w-9 items-center justify-center rounded-md bg-white text-xs font-bold tracking-wide text-navy-900">
+            DNA {/*sigla no badge branco (mock)*/}
           </span>
-          <span className="text-lg font-semibold text-white">NeoGenomica</span> {/*nome do app*/}
+          <span className="text-lg font-semibold tracking-tight text-white">NeoGenomica</span>
         </div>
 
         <nav className="flex flex-col gap-1"> {/*links principais*/}
-          <NavLink to="/amostras/nova"> {/*nova amostra*/}
-            {({ isActive }) => <span className={linkClasses(isActive)}>Amostras</span>}
+          <NavLink to="/amostras/nova" className={navClass}>
+            Amostras
           </NavLink>
 
-          <NavLink to="/estrutura"> {/*hierarquia fisica*/}
-            {({ isActive }) => (
-              <span className={linkClasses(isActive)}>Estrutura Física</span>
-            )}
+          <NavLink to="/estrutura" className={navClass}>
+            Estrutura Física
           </NavLink>
 
-          <NavLink to="/tabela"> {/*lista em tabela*/}
-            {({ isActive }) => <span className={linkClasses(isActive)}>Tabela</span>}
+          <NavLink to="/tabela" className={navClass}>
+            Tabela
           </NavLink>
 
-          <NavLink to="/lixeira"> {/*itens soft-deleted*/}
-            {({ isActive }) => <span className={linkClasses(isActive)}>Lixeira</span>}
+          {/* FUTURO: Lixeira fora do MVP
+          <NavLink to="/lixeira" className={navClass}>
+            Lixeira
           </NavLink>
+          */}
 
-          <p className="mt-6 mb-1 px-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <p className="mb-1 mt-8 px-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-400/80">
             Ferramentas {/*secao secundaria*/}
           </p>
-          <NavLink to="/importar-csv"> {/*upload em lote*/}
-            {({ isActive }) => <span className={linkClasses(isActive)}>Importar CSV</span>}
+
+          <NavLink to="/importar-csv" className={navClass}>
+            Importar CSV
           </NavLink>
         </nav>
 
-        <p className="mt-auto px-2 text-xs text-slate-600">Gestão de estoque de DNA</p> {/*rodape da sidebar*/}
+        <p className="mt-auto px-2 text-xs text-slate-500">Gestão de estoques de DNA</p>
       </aside>
 
-      <main className="flex-1 overflow-y-auto p-8"> {/*conteudo da rota atual*/}
+      <main className="flex-1 overflow-y-auto p-8 md:p-10"> {/*conteudo da rota atual*/}
         <Outlet /> {/*renderiza a pagina filha*/}
       </main>
     </div>

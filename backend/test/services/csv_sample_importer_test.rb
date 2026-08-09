@@ -57,4 +57,35 @@ class CsvSampleImporterTest < ActiveSupport::TestCase #testes do CsvSampleImport
       ])
     end
   end
+
+  test "preview nega codigo que ja existe no sistema" do #reimport do mesmo CSV
+    room = Room.create!(name: "Sala A")
+    freezer = room.freezers.create!(name: "-80")
+    drawer = freezer.drawers.create!(name: "G1")
+    box = drawer.boxes.create!(name: "Caixa X", rows: 2, columns: 2)
+    position = box.positions.find_by!(row: "A", column: 1)
+    Sample.create!(
+      position: position,
+      codigo_amostra: "JA-EXISTE",
+      paciente_nome: "Paciente",
+      material: "DNA"
+    )
+
+    csv = <<~CSV
+      #{CSV_HEADER}
+      Sala A,-80,G1,Caixa X,2,2,B1,JA-EXISTE,Outro,1,DNA,,
+      Sala A,-80,G1,Caixa X,2,2,A2,NOVO-OK,Novo,2,DNA,,
+    CSV
+
+    result = CsvSampleImporter.preview_csv(csv)
+
+    assert_equal 1, result[:ok].size #so o codigo novo
+    assert_equal "NOVO-OK", result[:ok].first[:data]["codigo_amostra"]
+    assert_equal 1, result[:rejected].size
+    rejected = result[:rejected].first
+    assert_equal "exists", rejected[:status] #status de ja presente
+    assert(rejected[:reasons].any? { |reason| reason.include?("já está presente") })
+    assert(rejected[:reasons].any? { |reason| reason.include?("JA-EXISTE") })
+  end
 end
+

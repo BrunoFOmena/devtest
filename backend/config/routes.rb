@@ -17,7 +17,8 @@ Rails.application.routes.draw do #mapa URL → controller#action
     resources :positions, only: %i[index] #so lista a grade da caixa
   end
 
-  resources :samples, only: %i[index create] do #lista e cria amostras
+  resources :samples, only: %i[index create destroy] do #lista, cria e apaga amostras
+
     collection do #rotas da colecao (sem :id)
       post :suggest #preview da posicao (first-fit)
       get :search #busca por codigo ou paciente
@@ -26,6 +27,8 @@ Rails.application.routes.draw do #mapa URL → controller#action
     end
   end
 
-  get "trash", to: "trash#index" #lista a lixeira
-  post "trash/:type/:id/restore", to: "trash#restore" #restaura item da lixeira
+  # --- Lixeira (soft-delete / restore): FORA DO MVP — implementação futura ---
+  # get "trash", to: "trash#index" #lista a lixeira
+  # post "trash/:type/:id/restore", to: "trash#restore" #restaura item da lixeira
 end
+

@@ -2,7 +2,8 @@ require "csv" #biblioteca padrao do Ruby para ler CSV
 
 # Preview e import historico de amostras a partir de CSV (posicao explicita).
 class CsvSampleImporter #service de importacao CSV
-  REQUIRED = %w[ #colunas obrigatorias no arquivo
+  # Colunas obrigatorias no arquivo (comentario FORA do %w — senao vira item da lista).
+  REQUIRED = %w[
     sala freezer gaveta caixa posicao codigo_amostra paciente_nome material
   ].freeze
 
@@ -122,7 +123,12 @@ class CsvSampleImporter #service de importacao CSV
     text.empty? ? nil : text
   end
 
-  def classify(rows) #separa linhas ok e rejected (error/duplicate)
+  def reason_is_code_conflict?(reason) #motivos so de codigo/id (nao estruturais)
+    reason.include?("Código") || reason.include?("ID da amostra")
+  end
+
+  def classify(rows) #separa linhas ok e rejected (error/duplicate/exists)
+
     ok = []
     rejected = []
     codes_in_file = Hash.new { |h, k| h[k] = [] } #codigo → linhas onde aparece
@@ -150,20 +156,31 @@ class CsvSampleImporter #service de importacao CSV
       end
 
       code = row["codigo_amostra"]
+      file_dupes = code.present? ? codes_in_file[code] : []
+      already_in_db = code.present? && existing_codes.include?(code) #id/codigo ja existe no banco
+
       if code.present?
-        file_dupes = codes_in_file[code]
-        if file_dupes.size > 1 #codigo repetido no arquivo
+        if file_dupes.size > 1 #mesmo codigo aparece mais de uma vez no CSV
           reasons << "Código repetido no arquivo (linhas #{file_dupes.join(', ')}). Escolha qual manter."
-        elsif existing_codes.include?(code) #codigo ja existe no sistema
-          reasons << "Código já cadastrado no sistema. Descarte ou altere o código para importar."
+        end
+        if already_in_db #mesmo CSV reimportado: nega se o id ja estiver presente
+          reasons << "ID da amostra já está presente no sistema: #{code}"
         end
       end
 
       if reasons.any? #tem algum problema
-        # Amarelo: so conflito de codigo. Qualquer outro erro estrutural → vermelho.
-        only_code_duplicate = reasons.all? { |reason| reason.include?("Código") }
+        # exists = codigo ja no banco; duplicate = so conflito dentro do arquivo; senao erro estrutural.
+        status =
+          if already_in_db && reasons.all? { |reason| reason_is_code_conflict?(reason) }
+            "exists" #amarelo: ja cadastrado — nao da para "manter" e importar
+          elsif file_dupes.size > 1 && reasons.all? { |reason| reason_is_code_conflict?(reason) }
+            "duplicate" #amarelo: escolha qual linha do arquivo manter
+          else
+            "error" #vermelho: problema de estrutura/posicao/campos
+          end
+
         rejected << {
-          status: only_code_duplicate ? "duplicate" : "error", #duplicate = amarelo; error = vermelho
+          status: status,
           reasons: reasons.uniq,
           data: row
         }
@@ -171,6 +188,7 @@ class CsvSampleImporter #service de importacao CSV
         ok << { status: "ok", reasons: [], data: row } #linha pronta para importar
       end
     end
+
 
     { ok: ok, rejected: rejected } #resultado do preview
   end
@@ -312,9 +330,10 @@ class CsvSampleImporter #service de importacao CSV
       raise ArgumentError, "Posição #{data['posicao']} já ocupada na caixa #{data['caixa']} (linha #{data['line']})"
     end
 
-    if Sample.exists?(codigo_amostra: data["codigo_amostra"]) #protecao final de codigo unico
-      raise ArgumentError, "Código #{data['codigo_amostra']} já existe (linha #{data['line']})"
+    if Sample.exists?(codigo_amostra: data["codigo_amostra"]) #protecao final: id ja presente
+      raise ArgumentError, "ID da amostra já está presente no sistema: #{data['codigo_amostra']} (linha #{data['line']})"
     end
+
 
     concentracao = data["concentracao_ng_ul"]
     concentracao = BigDecimal(concentracao.to_s) if concentracao.present? #converte para decimal

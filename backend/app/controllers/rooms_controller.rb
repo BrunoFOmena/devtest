@@ -27,10 +27,12 @@ class RoomsController < ApplicationController #herda da classe ApplicationContro
     end
   end
 
-  def destroy #metodo para deletar uma sala (manda para a lixeira)
-    HierarchyTrash.discard!(@room) #descarta a sala (soft delete)
-    head :no_content #retorna o status no content
+  def destroy #MVP: exclusao definitiva (cascata via dependent: :destroy nos models)
+    # HierarchyTrash.discard!(@room) #FUTURO: soft-delete / lixeira
+    @room.destroy! #apaga a sala e a hierarquia filha
+    head :no_content #retorna 204 sem corpo
   end
+
 
   private #metodos privados para nao serem acessados externamente
 

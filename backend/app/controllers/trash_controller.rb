@@ -1,3 +1,5 @@
+# FORA DO MVP — implementação futura da lixeira (rotas comentadas em config/routes.rb).
+# Mantido no codigo para reativar soft-delete + restore sem reescrever do zero.
 class TrashController < ApplicationController #herda da classe ApplicationController
   def index #metodo para listar o que esta na lixeira
     render json: HierarchyTrash.list #devolve a lista de itens descartados
@@ -12,3 +14,4 @@ class TrashController < ApplicationController #herda da classe ApplicationContro
     render_error(e.message) #devolve a mensagem do erro
   end
 end
+

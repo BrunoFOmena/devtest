@@ -31,10 +31,12 @@ class FreezersController < ApplicationController #herda da classe ApplicationCon
     end
   end
 
-  def destroy #metodo para deletar um freezer (manda para a lixeira)
-    HierarchyTrash.discard!(@freezer) #descarta o freezer (soft delete)
-    head :no_content #retorna o status no content
+  def destroy #MVP: exclusao definitiva (cascata via dependent: :destroy)
+    # HierarchyTrash.discard!(@freezer) #FUTURO: soft-delete / lixeira
+    @freezer.destroy! #apaga o freezer e filhos
+    head :no_content #retorna 204 sem corpo
   end
+
 
   private #metodos privados para nao serem acessados externamente
 

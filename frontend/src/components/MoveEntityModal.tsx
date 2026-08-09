@@ -85,7 +85,7 @@ export default function MoveEntityModal({
               required
               value={parentId}
               onChange={(e) => setParentId(Number(e.target.value))} //escolhe destino
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-violet-500 focus:outline-none"
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
             >
               {destinations.map((option) => (
                 <option key={option.id} value={option.id}>
@@ -109,7 +109,7 @@ export default function MoveEntityModal({
           <button
             type="submit"
             disabled={saving || loadingOptions || destinations.length === 0} //bloqueia se nao da
-            className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700 disabled:bg-slate-300"
+            className="rounded-lg bg-brand-400 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500 disabled:bg-slate-300"
           >
             {saving ? "Movendo..." : "Mover"}
           </button>

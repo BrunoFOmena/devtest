@@ -65,15 +65,25 @@ Sala → Freezer → Gaveta → Caixa → Posição → Amostra
 | Gavetas | `GET/POST /freezers/:freezer_id/drawers`, `GET/PATCH/DELETE /freezers/:freezer_id/drawers/:id` |
 | Caixas | `GET/POST /drawers/:drawer_id/boxes`, `GET/PATCH/DELETE /drawers/:drawer_id/boxes/:id` |
 | Posições | `GET /boxes/:box_id/positions` (grade vazia/ocupada) |
-| Amostras | `GET /samples`, `POST /samples`, `POST /samples/suggest`, `GET /samples/search?q=` |
+| Amostras | `GET /samples`, `POST /samples`, `DELETE /samples/:id`, `POST /samples/suggest`, `GET /samples/search?q=` |
 | Import CSV | `POST /samples/import_preview`, `POST /samples/import` |
-| Lixeira | `GET /trash`, `POST /trash/:type/:id/restore` |
 
 Ao criar uma caixa (`rows` × `columns`), o sistema gera as posições automaticamente (A1, A2, …).
 
-### Soft-delete (lixeira)
+### Exclusão (MVP)
 
-`DELETE` em sala/freezer/gaveta/caixa **não apaga de vez**: marca `discarded_at` e cascateia na hierarquia abaixo. Listagens ativas usam registros `kept`. Restore via `POST /trash/:type/:id/restore` (`type`: `room`, `freezer`, `drawer`, `box`).
+- **Hierarquia** (`DELETE` em sala/freezer/gaveta/caixa): **definitivo** (`destroy!`), com cascata pelos `dependent: :destroy` dos models (inclui posições e amostras filhas).
+- **Amostra** (`DELETE /samples/:id`): remove só a amostra e libera a posição para novo first-fit.
+
+### Lixeira — implementação futura (fora do MVP)
+
+Soft-delete + restore **não entram neste MVP**. O código permanece no projeto para reativação:
+
+- `SoftDeletable`, `HierarchyTrash`, `TrashController`
+- Rotas comentadas em `config/routes.rb` (`GET /trash`, `POST /trash/:type/:id/restore`)
+- Controllers de hierarquia têm a linha `HierarchyTrash.discard!` comentada ao lado do `destroy!` atual
+
+O scope `kept` nos models continua disponível (o allocator filtra por ele); no MVP, sem discard ativo, equivale a todos os registros.
 
 ### Mover / renomear
 
@@ -88,11 +98,15 @@ Ao criar uma caixa (`rows` × `columns`), o sistema gera as posições automatic
 { "room_id": 1, "freezer_id": 2, "drawer_id": 3, "box_id": 4 }
 ```
 
-Usa o filtro mais específico presente. Sem escopo, first-fit global (só hierarquia `kept`).
+Usa o filtro mais específico presente. Sem escopo, first-fit global.
 
 ### Importação CSV
 
-1. `POST /samples/import_preview` com `{ "csv": "<conteudo>" }` ou `{ "rows": [...] }` → classifica `ok` / `rejected` (erro ou duplicata de código).
+1. `POST /samples/import_preview` com `{ "csv": "<conteudo>" }` ou `{ "rows": [...] }` → classifica linhas em:
+   - **ok** — pode importar
+   - **error** — problema estrutural (posição inválida, campos obrigatórios, etc.)
+   - **duplicate** — mesmo `codigo_amostra` repetido **dentro do arquivo**
+   - **exists** — `codigo_amostra` **já cadastrado no banco** (mensagem: `ID da amostra já está presente no sistema: …`)
 2. `POST /samples/import` com `{ "rows": [ ... linhas ok ... ] }` → cria hierarquia faltante e amostras nas posições **explícitas** do arquivo.
 
 ## Fluxo rápido com curl
@@ -137,6 +151,12 @@ curl -X POST http://localhost:3000/samples \
   -d '{"sample":{"codigo_amostra":"AMO-001","paciente_nome":"Maria Silva","material":"Sangue"}}'
 ```
 
+Excluir amostra:
+
+```bash
+curl -X DELETE http://localhost:3000/samples/1
+```
+
 Buscar:
 
 ```bash
@@ -149,16 +169,9 @@ Grade da caixa:
 curl http://localhost:3000/boxes/1/positions
 ```
 
-Lixeira:
-
-```bash
-curl http://localhost:3000/trash
-curl -X POST http://localhost:3000/trash/room/1/restore
-```
-
 ## Regras importantes
 
-- **First-fit:** caixas `kept` mais antigas primeiro (`created_at`); dentro da caixa, A1, A2, …; usuário não informa a célula.
+- **First-fit:** caixas mais antigas primeiro (`created_at`); dentro da caixa, A1, A2, …; usuário não informa a célula.
 - **Caixa cheia:** `422` com `"abrir nova caixa"`.
 - **Código único:** `codigo_amostra` não se repete.
 - **Payload de localização:** respostas de amostra/sugestão incluem caminho, ids e `linhas`/`colunas` da caixa.
@@ -175,11 +188,11 @@ curl -X POST http://localhost:3000/trash/room/1/restore
 ## Pastas principais
 
 ```
-app/models/            entidades, SoftDeletable
+app/models/            entidades (+ SoftDeletable preparado para o futuro)
 app/models/concerns/   soft_deletable.rb
-app/services/          PositionGenerator, SampleAllocator, CsvSampleImporter, HierarchyTrash
-app/controllers/       endpoints JSON (incl. TrashController)
+app/services/          PositionGenerator, SampleAllocator, CsvSampleImporter, HierarchyTrash (futuro)
+app/controllers/       endpoints JSON (TrashController fora do MVP)
 db/seeds.rb            importa amostras_exemplo.csv
 test/                  Minitest (models, services, integração)
-config/routes.rb       mapa de URLs
+config/routes.rb       mapa de URLs (rotas de trash comentadas)
 ```

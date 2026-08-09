@@ -43,10 +43,10 @@ function Grid({ //grade A1, A2... com labels
       return "bg-teal-500 text-white ring-2 ring-teal-300 ring-offset-1" //busca
     }
     if (selectedPositionId != null && cell.id === selectedPositionId) {
-      return "bg-violet-600 text-white ring-2 ring-violet-300 ring-offset-1" //selecionada
+      return "bg-brand-600 text-white ring-2 ring-brand-300 ring-offset-1" //selecionada
     }
     if (cell.occupied) {
-      return "bg-violet-400 text-white" //ocupada
+      return "bg-brand-400 text-white" //ocupada
     }
     return "bg-emerald-400 text-white" //livre
   }
@@ -153,11 +153,11 @@ function Legend({ //legenda de cores
         <span className="h-3 w-3 rounded-full bg-emerald-400" /> Livre
       </span>
       <span className="flex items-center gap-1.5">
-        <span className="h-3 w-3 rounded-full bg-violet-400" /> Ocupada
+        <span className="h-3 w-3 rounded-full bg-brand-400" /> Ocupada
       </span>
       {selectedPositionId != null && ( //so mostra se tem selecionada
         <span className="flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded-full bg-violet-600 ring-2 ring-violet-300" /> Selecionada
+          <span className="h-3 w-3 rounded-full bg-brand-600 ring-2 ring-brand-300" /> Selecionada
         </span>
       )}
       {highlightPositionId != null && ( //so mostra se tem busca

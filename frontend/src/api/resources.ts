@@ -32,7 +32,7 @@ export function createRoom(name: string): Promise<Room> { //POST /rooms
   })
 }
 
-export function deleteRoom(roomId: number): Promise<void> { //DELETE /rooms/:id (lixeira)
+export function deleteRoom(roomId: number): Promise<void> { //DELETE /rooms/:id (MVP: definitivo)
   return request<void>(`/rooms/${roomId}`, { method: "DELETE" })
 }
 
@@ -128,6 +128,7 @@ export function updateBox( //PATCH box
 }
 
 
+// --- Lixeira: clientes prontos, mas FORA DO MVP (rotas da API e menu comentados) ---
 export type TrashItemType = "room" | "freezer" | "drawer" | "box" //tipos da lixeira
 
 export interface TrashItem { //item listado em GET /trash
@@ -138,13 +139,15 @@ export interface TrashItem { //item listado em GET /trash
   discarded_at: string
 }
 
-export function listTrash(): Promise<TrashItem[]> { //GET /trash
+export function listTrash(): Promise<TrashItem[]> { //GET /trash (rota desativada no MVP)
   return request<TrashItem[]>("/trash")
 }
 
-export function restoreTrashItem(type: TrashItemType, id: number): Promise<TrashItem> { //POST restore
+export function restoreTrashItem(type: TrashItemType, id: number): Promise<TrashItem> { //POST restore (desativado no MVP)
   return request<TrashItem>(`/trash/${type}/${id}/restore`, { method: "POST" })
 }
+
+
 
 export function listPositions(boxId: number): Promise<PositionCell[]> { //grade da caixa
   return request<PositionCell[]>(`/boxes/${boxId}/positions`)
@@ -173,7 +176,12 @@ export function createSample( //POST /samples (first-fit grava)
   })
 }
 
+export function deleteSample(sampleId: number): Promise<void> { //DELETE /samples/:id
+  return request<void>(`/samples/${sampleId}`, { method: "DELETE" })
+}
+
 export interface CsvImportRowData { //uma linha do CSV normalizada
+
   line?: number
   sala: string
   freezer: string
@@ -190,8 +198,9 @@ export interface CsvImportRowData { //uma linha do CSV normalizada
   observacao?: string | null
 }
 
-export interface CsvImportItem { //item do preview (ok / error / duplicate)
-  status: "ok" | "error" | "duplicate"
+export interface CsvImportItem { //item do preview (ok / error / duplicate / exists)
+  status: "ok" | "error" | "duplicate" | "exists" //exists = codigo ja no banco
+
   reasons: string[]
   data: CsvImportRowData
 }

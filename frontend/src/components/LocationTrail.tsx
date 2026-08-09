@@ -39,7 +39,7 @@ const LEVELS: { //config visual de cada card
     level: "room",
     title: "Sala",
     modifyLabel: "Modificar sala",
-    accent: "bg-violet-100 text-violet-700",
+    accent: "bg-brand-100 text-brand-700",
     accentLocked: "bg-slate-100 text-slate-400",
   },
   {
@@ -249,7 +249,7 @@ export default function LocationTrail({
             <div key={level} className="flex items-start gap-3">
               {index > 0 && ( //seta entre cards
                 <span
-                  className={`mt-8 hidden sm:inline ${unlocked ? "text-violet-300" : "text-slate-200"}`}
+                  className={`mt-8 hidden sm:inline ${unlocked ? "text-brand-300" : "text-slate-200"}`}
                   aria-hidden
                 >
                   →
@@ -282,7 +282,7 @@ export default function LocationTrail({
                       }
                       disabled={!unlocked}
                       onClick={() => setCreateLevel(level)} //abre criar
-                      className="flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 text-sm font-bold text-violet-600 hover:bg-violet-50 disabled:cursor-not-allowed disabled:border-slate-100 disabled:bg-slate-100 disabled:text-slate-300"
+                      className="flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 text-sm font-bold text-brand-600 hover:bg-brand-50 disabled:cursor-not-allowed disabled:border-slate-100 disabled:bg-slate-100 disabled:text-slate-300"
                     >
                       +
                     </button>
@@ -333,9 +333,9 @@ export default function LocationTrail({
                           type="button"
                           onClick={() => selectOption(level, option)}
                           className={[
-                            "flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-violet-50",
+                            "flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-brand-50",
                             option.name === display[level]
-                              ? "font-semibold text-violet-700" //item atual
+                              ? "font-semibold text-brand-700" //item atual
                               : "text-slate-700",
                           ].join(" ")}
                         >
@@ -353,7 +353,7 @@ export default function LocationTrail({
 
         <div className="flex items-start gap-3"> {/*card final: posicao auto*/}
           <span
-            className={`mt-8 hidden sm:inline ${positionReady ? "text-violet-300" : "text-slate-200"}`}
+            className={`mt-8 hidden sm:inline ${positionReady ? "text-brand-300" : "text-slate-200"}`}
             aria-hidden
           >
             →
@@ -362,27 +362,27 @@ export default function LocationTrail({
             className={[
               "w-28 rounded-xl border px-3 py-3",
               positionReady
-                ? "border-violet-200 bg-violet-50" //tem label
+                ? "border-brand-200 bg-brand-50" //tem label
                 : "border-slate-100 bg-slate-50 opacity-70",
             ].join(" ")}
           >
             <p
               className={`text-[10px] font-bold uppercase ${
-                positionReady ? "text-violet-500" : "text-slate-400"
+                positionReady ? "text-brand-500" : "text-slate-400"
               }`}
             >
               Posição
             </p>
             <p
               className={`mt-2 text-sm font-semibold ${
-                positionReady ? "text-violet-800" : "text-slate-400"
+                positionReady ? "text-brand-800" : "text-slate-400"
               }`}
             >
               {suggestion?.label ?? "—"} {/*A1, B3...*/}
             </p>
             <p
               className={`mt-3 text-[10px] ${
-                positionReady ? "text-violet-400" : "text-slate-300"
+                positionReady ? "text-brand-400" : "text-slate-300"
               }`}
             >
               Automática {/*nao e editavel aqui*/}

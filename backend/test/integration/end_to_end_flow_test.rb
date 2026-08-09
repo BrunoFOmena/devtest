@@ -133,13 +133,14 @@ class EndToEndFlowTest < ActionDispatch::IntegrationTest #fluxo ponta a ponta
     assert_response :unprocessable_entity #422
     assert_equal SampleAllocator::FULL_MESSAGE, JSON.parse(response.body)["error"] #mesmo erro
 
-    delete room_url(room_id), as: :json #lixeira em cascata
+    delete room_url(room_id), as: :json #exclusao definitiva em cascata (MVP)
     assert_response :no_content #204
-    assert_equal 0, Room.kept.count #sala fora
-    assert_equal 0, Freezer.kept.count #freezer fora
-    assert_equal 0, Drawer.kept.count #gaveta fora
-    assert_equal 0, Box.kept.count #caixa fora
+    assert_equal 0, Room.count #sala apagada
+    assert_equal 0, Freezer.count #freezer apagado
+    assert_equal 0, Drawer.count #gaveta apagada
+    assert_equal 0, Box.count #caixa apagada
   end
+
 
   test "fluxo com duas caixas respeita first-fit entre caixas" do #antiga antes da nova
     post rooms_url, params: { room: { name: "Sala 1" } }, as: :json #sala

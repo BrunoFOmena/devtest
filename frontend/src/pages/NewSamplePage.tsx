@@ -1,9 +1,10 @@
-import { useState } from "react" //estado local do formulario
+import { useState, type ReactNode } from "react" //estado local do formulario
 import { ApiError } from "../api/client" //erro tipado da API
 import { createSample, suggestSample } from "../api/resources" //cria amostra e pede sugestao
 import AlertModal from "../components/AlertModal" //alerta de codigo duplicado
 import AutoPositionChoiceModal from "../components/AutoPositionChoiceModal" //aceita/rejeita posicao auto
 import LocationSuggestionModal from "../components/LocationSuggestionModal" //escolhe local na mao
+import PageHeader from "../components/PageHeader" //titulo padrao da marca
 import type { AllocationScope, Location } from "../types/api" //tipos de escopo e local
 
 function isDuplicateCodigo(error: ApiError): boolean { //detecta 422 de codigo repetido
@@ -32,8 +33,17 @@ const EMPTY_FORM = { //valores iniciais do formulario
   observacao: "", //obs opcional
 }
 
-const inputClass = //estilo padrao dos inputs
-  "mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+const inputClass = //estilo padrao dos inputs (identidade navy/teal)
+  "mt-1.5 w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-navy-900 placeholder:text-slate-400 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/30"
+
+function FieldLabel({ children, required }: { children: ReactNode; required?: boolean }) {
+  return (
+    <span className="text-sm font-semibold text-navy-900">
+      {children}
+      {required && <span className="text-brand-500"> *</span>}
+    </span>
+  )
+}
 
 export default function NewSamplePage() { //pagina de cadastro de amostra
   const [form, setForm] = useState(EMPTY_FORM) //dados do formulario
@@ -174,32 +184,31 @@ export default function NewSamplePage() { //pagina de cadastro de amostra
         />
       )}
 
-      <div> {/*cabecalho da pagina*/}
-        <h1 className="text-2xl font-semibold text-slate-900">Cadastro de Amostra</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Preencha os dados e clique em OK. Em seguida, aceite a posição automática ou edite.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Amostras"
+        title="Cadastro de Amostra"
+        description="Preencha os dados e clique em OK. Em seguida, aceite a posição automática ou edite."
+      />
 
       {successMessage && ( //banner verde de sucesso
-        <div className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+        <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
           {successMessage}
         </div>
       )}
 
       {submitError && !showLocationModal && !showAutoChoice && ( //erro so se modais fechados
-        <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
           {submitError}
         </div>
       )}
 
-      <form onSubmit={handleFormOk} className="mt-6"> {/*form principal*/}
-        <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm"> {/*card dos campos*/}
-          <h2 className="text-base font-semibold text-slate-800">Dados da Amostra</h2>
+      <form onSubmit={handleFormOk} className="mt-8"> {/*form principal*/}
+        <section className="rounded-2xl border border-slate-100 bg-white p-8 shadow-sm"> {/*card dos campos*/}
+          <h2 className="text-base font-semibold text-brand-500">Dados da Amostra</h2>
 
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2"> {/*grade 2 colunas*/}
+          <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2"> {/*grade 2 colunas*/}
             <label className="block"> {/*codigo obrigatorio*/}
-              <span className="text-sm font-medium text-slate-600">Código da amostra *</span>
+              <FieldLabel required>Código da amostra</FieldLabel>
               <input
                 required
                 value={form.codigo_amostra}
@@ -210,7 +219,7 @@ export default function NewSamplePage() { //pagina de cadastro de amostra
             </label>
 
             <label className="block"> {/*paciente obrigatorio*/}
-              <span className="text-sm font-medium text-slate-600">Paciente *</span>
+              <FieldLabel required>Paciente</FieldLabel>
               <input
                 required
                 value={form.paciente_nome}
@@ -221,7 +230,7 @@ export default function NewSamplePage() { //pagina de cadastro de amostra
             </label>
 
             <label className="block"> {/*material obrigatorio*/}
-              <span className="text-sm font-medium text-slate-600">Material *</span>
+              <FieldLabel required>Material</FieldLabel>
               <input
                 required
                 value={form.material}
@@ -232,7 +241,7 @@ export default function NewSamplePage() { //pagina de cadastro de amostra
             </label>
 
             <label className="block"> {/*concentracao opcional*/}
-              <span className="text-sm font-medium text-slate-600">Concentração (ng/µL)</span>
+              <FieldLabel>Concentração (ng/µL)</FieldLabel>
               <input
                 type="number"
                 step="0.01"
@@ -245,7 +254,7 @@ export default function NewSamplePage() { //pagina de cadastro de amostra
             </label>
 
             <label className="block"> {/*exame opcional*/}
-              <span className="text-sm font-medium text-slate-600">Exame</span>
+              <FieldLabel>Exame</FieldLabel>
               <input
                 value={form.exame}
                 onChange={(e) => updateField("exame", e.target.value)} //atualiza exame
@@ -255,7 +264,7 @@ export default function NewSamplePage() { //pagina de cadastro de amostra
             </label>
 
             <label className="block"> {/*obs opcional*/}
-              <span className="text-sm font-medium text-slate-600">Observação</span>
+              <FieldLabel>Observação</FieldLabel>
               <input
                 value={form.observacao}
                 onChange={(e) => updateField("observacao", e.target.value)} //atualiza obs
@@ -265,10 +274,10 @@ export default function NewSamplePage() { //pagina de cadastro de amostra
             </label>
           </div>
 
-          <div className="mt-6 flex justify-end"> {/*botao a direita*/}
+          <div className="mt-8 flex justify-end"> {/*botao a direita*/}
             <button
               type="submit"
-              className="rounded-lg bg-violet-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-violet-700"
+              className="rounded-lg bg-brand-400 px-8 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-500"
             >
               OK {/*segue pro fluxo de posicao*/}
             </button>

@@ -66,11 +66,12 @@ class FreezersTest < ActionDispatch::IntegrationTest #CRUD de freezers pela API
   test "remove freezer" do #DELETE soft delete
     freezer = @room.freezers.create!(name: "Remover") #alvo
 
-    assert_no_difference -> { Freezer.count } do #nao apaga de verdade
-      delete room_freezer_url(@room, freezer), as: :json #manda pra lixeira
+    assert_difference -> { Freezer.count }, -1 do #apaga do banco
+      delete room_freezer_url(@room, freezer), as: :json #exclusao definitiva (MVP)
     end
 
     assert_response :no_content #204
-    assert freezer.reload.discarded? #soft deleted
+    assert_nil Freezer.find_by(id: freezer.id) #nao existe mais
   end
+
 end

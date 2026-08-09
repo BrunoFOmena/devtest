@@ -67,11 +67,12 @@ class DrawersTest < ActionDispatch::IntegrationTest #CRUD de gavetas pela API
   test "remove gaveta" do #DELETE soft delete
     drawer = @freezer.drawers.create!(name: "Remover") #alvo
 
-    assert_no_difference -> { Drawer.count } do #nao apaga de verdade
-      delete freezer_drawer_url(@freezer, drawer), as: :json #manda pra lixeira
+    assert_difference -> { Drawer.count }, -1 do #apaga do banco
+      delete freezer_drawer_url(@freezer, drawer), as: :json #exclusao definitiva (MVP)
     end
 
     assert_response :no_content #204
-    assert drawer.reload.discarded? #soft deleted
+    assert_nil Drawer.find_by(id: drawer.id) #nao existe mais
   end
+
 end

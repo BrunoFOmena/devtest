@@ -1,6 +1,9 @@
+// FORA DO MVP — página da lixeira (import/rota comentados em App.tsx; menu em Layout.tsx).
+// Mantida no codigo para reativar soft-delete + restore sem reescrever a UI.
 import { useCallback, useEffect, useState } from "react" //hooks de estado e efeito
 import { ApiError } from "../api/client" //erro tipado da API
 import { listTrash, restoreTrashItem, type TrashItem } from "../api/resources" //lista e restaura
+
 
 const TYPE_LABEL: Record<TrashItem["type"], string> = { //rotulo amigavel do tipo
   room: "Sala",
@@ -82,7 +85,7 @@ export default function TrashPage() { //pagina da lixeira
                   type="button"
                   disabled={restoringId === key} //bloqueia enquanto restaura
                   onClick={() => handleRestore(item)} //restaura
-                  className="rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-violet-700 disabled:bg-slate-300"
+                  className="rounded-lg bg-brand-400 px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-500 disabled:bg-slate-300"
                 >
                   {restoringId === key ? "Restaurando..." : "Restaurar"} {/*label dinamico*/}
                 </button>

@@ -1,4 +1,7 @@
+# Soft-delete (kept/discarded). Coluna discarded_at permanece no schema.
+# FORA DO MVP a UI/API de lixeira; .kept ainda filtra discarded_at nil (seguro com hard delete).
 module SoftDeletable #modulo reutilizavel de soft delete (lixeira)
+
   extend ActiveSupport::Concern #permite usar include SoftDeletable nos models
 
   included do #codigo que roda quando o model inclui este concern

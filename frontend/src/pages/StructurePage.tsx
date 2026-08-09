@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react" //hooks de estado e efeito
-import { Link } from "react-router-dom" //link pra lixeira
+import { useEffect, useLayoutEffect, useRef, useState } from "react" //hooks de estado, layout e refs
+// import { Link } from "react-router-dom" //FUTURO: link pra lixeira
 import {
-  deleteBox, //soft-delete caixa
-  deleteDrawer, //soft-delete gaveta
-  deleteFreezer, //soft-delete freezer
-  deleteRoom, //soft-delete sala
+  deleteBox, //exclui caixa (MVP: hard delete)
+  deleteDrawer, //exclui gaveta
+  deleteFreezer, //exclui freezer
+  deleteRoom, //exclui sala
+
   listBoxes,
   listDrawers,
   listFreezers,
@@ -19,6 +20,7 @@ import {
 import BoxMap from "../components/BoxMap" //mapa de posicoes da caixa
 import CreateEntityModal from "../components/CreateEntityModal" //criar sala/freezer/gaveta/caixa
 import MoveEntityModal, { type MoveOption } from "../components/MoveEntityModal" //mover entidade
+import PageHeader from "../components/PageHeader" //titulo padrao da marca
 import RenameEntityModal from "../components/RenameEntityModal" //renomear
 import SampleDetailModal from "../components/SampleDetailModal" //ficha da amostra
 import type {
@@ -66,7 +68,7 @@ type MoveTarget = //entidade + destinos do modal de mover
     }
 
 const actionBtnClass = //estilo dos botoes ✎ / ⇄
-  "rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-xs text-slate-500 hover:border-violet-200 hover:bg-violet-50 hover:text-violet-700"
+  "rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-xs text-slate-500 hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700"
 
 type TreeLevel = //um nivel expandido da arvore (branch)
   | { kind: "freezers"; room: Room; items: Freezer[]; selectedId?: number }
@@ -114,9 +116,9 @@ function nodeClass(selected: boolean, highlighted: boolean): string { //classes 
     return "border-teal-400 bg-teal-50 ring-2 ring-teal-200" //destaque da busca
   }
   if (selected) {
-    return "border-violet-400 bg-violet-50 ring-2 ring-violet-200" //selecionado na navegacao
+    return "border-brand-400 bg-brand-50 ring-2 ring-brand-200" //selecionado na navegacao
   }
-  return "border-slate-200 bg-white hover:border-violet-200 hover:bg-violet-50/40" //idle
+  return "border-slate-200 bg-white hover:border-brand-200 hover:bg-brand-50/40" //idle
 }
 
 export default function StructurePage() { //pagina da estrutura fisica
@@ -125,6 +127,70 @@ export default function StructurePage() { //pagina da estrutura fisica
   const [branch, setBranch] = useState<TreeLevel[]>([]) //niveis a direita da sala
   const [loading, setLoading] = useState(true) //carregando salas
   const [branchLoading, setBranchLoading] = useState(false) //carregando um nivel
+  const treeRef = useRef<HTMLDivElement>(null) //container da arvore (mede offsets)
+  const nodeRefs = useRef(new Map<string, HTMLElement>()) //cards selecionaveis
+  const [columnTops, setColumnTops] = useState<number[]>([]) //marginTop de cada coluna filha
+
+  function setNodeRef(key: string, el: HTMLElement | null) { //registra no no mapa de refs
+    if (el) nodeRefs.current.set(key, el)
+    else nodeRefs.current.delete(key)
+  }
+
+  useLayoutEffect(() => { //alinha colunas filhas com o pai selecionado (arvore genealogica)
+    // Altura do cabecalho da coluna (titulo + botao + mb-3) para alinhar card com card.
+    const COLUMN_HEADER_PX = 36
+
+    function offsetFor(el: HTMLElement | undefined, treeTop: number): number {
+      if (!el) return 0
+      // Desconta o header da coluna filha para o primeiro card ficar na altura do pai.
+      return Math.max(
+        0,
+        Math.round(el.getBoundingClientRect().top - treeTop - COLUMN_HEADER_PX),
+      )
+    }
+
+    function measure() {
+      const tree = treeRef.current
+      if (!tree || branch.length === 0) {
+        setColumnTops([])
+        return
+      }
+
+      const treeTop = tree.getBoundingClientRect().top
+      const tops: number[] = []
+
+      // Coluna 0 do branch (freezers): sobe/desce ate a sala selecionada.
+      tops[0] =
+        selectedRoomId != null
+          ? offsetFor(nodeRefs.current.get(`room-${selectedRoomId}`), treeTop)
+          : 0
+
+      // Proximas colunas: alinham com o item selecionado da coluna anterior.
+      for (let i = 0; i < branch.length - 1; i++) {
+        const level = branch[i]
+        if (level.kind === "positions" || !("selectedId" in level) || level.selectedId == null) {
+          tops[i + 1] = tops[i] ?? 0
+          continue
+        }
+        const el = nodeRefs.current.get(`${level.kind}-${level.selectedId}`)
+        tops[i + 1] = el ? offsetFor(el, treeTop) : (tops[i] ?? 0)
+      }
+
+      setColumnTops((current) => {
+        if (
+          current.length === tops.length &&
+          current.every((value, index) => value === tops[index])
+        ) {
+          return current //evita re-render inutil
+        }
+        return tops
+      })
+    }
+
+    measure()
+    window.addEventListener("resize", measure)
+    return () => window.removeEventListener("resize", measure)
+  }, [selectedRoomId, branch, rooms, branchLoading])
   const [error, setError] = useState<string | null>(null) //msg de erro
 
   const [query, setQuery] = useState("") //texto da busca
@@ -265,17 +331,17 @@ export default function StructurePage() { //pagina da estrutura fisica
     }
   }
 
-  async function handleDeleteRoom(room: Room, event: React.MouseEvent) { //lixeira na sala
+  async function handleDeleteRoom(room: Room, event: React.MouseEvent) { //exclui sala (MVP: definitivo)
     event.stopPropagation()
     if (
       !window.confirm(
-        `Mover a sala "${room.name}" para a lixeira? Freezers, gavetas e caixas dentro também vão.`,
+        `Excluir a sala "${room.name}"? Freezers, gavetas e caixas dentro também serão excluídos. Esta ação não pode ser desfeita.`,
       )
     ) {
       return //cancelou
     }
     try {
-      await deleteRoom(room.id) //soft-delete
+      await deleteRoom(room.id) //DELETE definitivo na API
       setRooms((current) => current.filter((item) => item.id !== room.id)) //tira da lista
       if (selectedRoomId === room.id) { //se era a aberta
         setBranch([])
@@ -283,13 +349,19 @@ export default function StructurePage() { //pagina da estrutura fisica
         clearLocate()
       }
     } catch {
-      setError("Não foi possível mover a sala para a lixeira.")
+      setError("Não foi possível excluir a sala.")
     }
   }
 
-  async function handleDeleteFreezer(room: Room, freezer: Freezer, event: React.MouseEvent) { //lixeira freezer
+  async function handleDeleteFreezer(room: Room, freezer: Freezer, event: React.MouseEvent) { //exclui freezer
     event.stopPropagation()
-    if (!window.confirm(`Mover o freezer "${freezer.name}" para a lixeira?`)) return
+    if (
+      !window.confirm(
+        `Excluir o freezer "${freezer.name}"? Esta ação não pode ser desfeita.`,
+      )
+    ) {
+      return
+    }
     try {
       await deleteFreezer(room.id, freezer.id)
       setBranch((current) => {
@@ -305,17 +377,23 @@ export default function StructurePage() { //pagina da estrutura fisica
       })
       clearLocate()
     } catch {
-      setError("Não foi possível mover o freezer para a lixeira.")
+      setError("Não foi possível excluir o freezer.")
     }
   }
 
-  async function handleDeleteDrawer( //lixeira gaveta
+  async function handleDeleteDrawer( //exclui gaveta
     freezer: Freezer,
     drawer: Drawer,
     event: React.MouseEvent,
   ) {
     event.stopPropagation()
-    if (!window.confirm(`Mover a gaveta "${drawer.name}" para a lixeira?`)) return
+    if (
+      !window.confirm(
+        `Excluir a gaveta "${drawer.name}"? Esta ação não pode ser desfeita.`,
+      )
+    ) {
+      return
+    }
     try {
       await deleteDrawer(freezer.id, drawer.id)
       setBranch((current) => {
@@ -335,13 +413,19 @@ export default function StructurePage() { //pagina da estrutura fisica
       })
       clearLocate()
     } catch {
-      setError("Não foi possível mover a gaveta para a lixeira.")
+      setError("Não foi possível excluir a gaveta.")
     }
   }
 
-  async function handleDeleteBox(drawer: Drawer, box: Box, event: React.MouseEvent) { //lixeira caixa
+  async function handleDeleteBox(drawer: Drawer, box: Box, event: React.MouseEvent) { //exclui caixa
     event.stopPropagation()
-    if (!window.confirm(`Mover a caixa "${box.name}" para a lixeira?`)) return
+    if (
+      !window.confirm(
+        `Excluir a caixa "${box.name}"? Esta ação não pode ser desfeita.`,
+      )
+    ) {
+      return
+    }
     try {
       await deleteBox(drawer.id, box.id)
       setBranch((current) => {
@@ -361,9 +445,10 @@ export default function StructurePage() { //pagina da estrutura fisica
       })
       clearLocate()
     } catch {
-      setError("Não foi possível mover a caixa para a lixeira.")
+      setError("Não foi possível excluir a caixa.")
     }
   }
+
 
   async function openRoom(room: Room) { //clique na sala (toggle)
     if (selectedRoomId === room.id && branch.length > 0) { //ja aberta: fecha
@@ -643,20 +728,22 @@ export default function StructurePage() { //pagina da estrutura fisica
   return (
     <div className="mx-auto max-w-6xl"> {/*pagina da estrutura*/}
       <div className="flex items-start justify-between gap-4"> {/*cabecalho + acoes*/}
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Estrutura Física</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Busque uma amostra ou navegue na árvore. Excluir envia para a lixeira (recuperável).
-          </p>
-        </div>
+        <PageHeader
+          eyebrow="Estrutura"
+          title="Estrutura Física"
+          description="Busque uma amostra ou navegue na árvore. Excluir remove a estrutura (definitivo neste MVP)."
+        />
         <div className="flex items-center gap-2"> {/*atalhos a direita*/}
+          {/* FUTURO: atalho da lixeira
           <Link
             to="/lixeira"
             className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
           >
             Lixeira
           </Link>
+          */}
           {branch.length > 0 && ( //voltar so se tem branch
+
             <button
               type="button"
               onClick={goBack} //recolhe nivel
@@ -726,8 +813,32 @@ export default function StructurePage() { //pagina da estrutura fisica
       )}
 
       {activeSample && ( //modal ficha da amostra
-        <SampleDetailModal sample={activeSample} onClose={closeSampleFicha} />
+        <SampleDetailModal
+          sample={activeSample}
+          onClose={closeSampleFicha}
+          onDeleted={async () => {
+            // Amostra apagada: limpa destaque e atualiza o mapa se estiver aberto.
+            const boxId = activeSample.box_id
+            clearLocate()
+            setResults(null)
+            const positionsLevel = branch.find((l) => l.kind === "positions")
+            if (positionsLevel?.kind === "positions" && positionsLevel.box.id === boxId) {
+              try {
+                const positions = await listPositions(boxId) //recarrega grade livre/ocupada
+                setBranch((current) =>
+                  current.map((level) =>
+                    level.kind === "positions" ? { ...level, positions } : level,
+                  ),
+                )
+              } catch {
+                setError("Amostra excluída, mas não foi possível atualizar o mapa.")
+              }
+            }
+          }}
+        />
       )}
+
+
 
       {createTarget && ( //modal criar entidade
         <CreateEntityModal
@@ -997,19 +1108,19 @@ export default function StructurePage() { //pagina da estrutura fisica
       {loading && <p className="mt-8 text-sm text-slate-400">Carregando salas...</p>}
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
-      {!loading && ( //arvore horizontal
-        <div className="mt-8 overflow-x-auto pb-4"> {/*scroll se estreitar*/}
-          <div className="flex min-w-min items-start"> {/*colunas lado a lado*/}
+      {!loading && ( //arvore horizontal (deslocamento vertical = genealogica)
+        <div className="mt-8 overflow-x-auto pb-8"> {/*scroll se estreitar*/}
+          <div ref={treeRef} className="flex min-w-min items-start"> {/*colunas lado a lado*/}
             <div className="w-52 shrink-0"> {/*coluna salas*/}
               <div className="mb-3 flex items-center justify-between gap-2">
-                <p className="text-xs font-bold uppercase tracking-wider text-violet-600">
+                <p className="text-xs font-bold uppercase tracking-wider text-brand-600">
                   Salas
                 </p>
                 <button
                   type="button"
                   title="Nova sala"
                   onClick={() => setCreateTarget({ level: "room" })} //abre criar sala
-                  className="flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 bg-white text-sm font-bold text-violet-600 hover:bg-violet-50"
+                  className="flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 bg-white text-sm font-bold text-brand-600 hover:bg-brand-50"
                 >
                   +
                 </button>
@@ -1024,7 +1135,11 @@ export default function StructurePage() { //pagina da estrutura fisica
                   const selected = selectedRoomId === room.id
                   const highlighted = pathHighlight?.roomId === room.id
                   return (
-                    <li key={room.id} className="relative"> {/*card da sala*/}
+                    <li
+                      key={room.id}
+                      ref={(el) => setNodeRef(`room-${room.id}`, el)}
+                      className="relative"
+                    > {/*card da sala*/}
                       <button
                         type="button"
                         onClick={() => openRoom(room)} //abre/fecha freezers
@@ -1038,7 +1153,7 @@ export default function StructurePage() { //pagina da estrutura fisica
                             "rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase",
                             highlighted
                               ? "bg-teal-100 text-teal-800"
-                              : "bg-violet-100 text-violet-700",
+                              : "bg-brand-100 text-brand-700",
                           ].join(" ")}
                         >
                           Sala
@@ -1047,8 +1162,9 @@ export default function StructurePage() { //pagina da estrutura fisica
                       </button>
                       <button
                         type="button"
-                        title="Mover para lixeira"
-                        onClick={(event) => handleDeleteRoom(room, event)} //soft-delete
+                        title="Excluir"
+                        onClick={(event) => handleDeleteRoom(room, event)} //hard delete (MVP)
+
                         className="absolute right-2 top-2 rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-xs text-slate-500 hover:border-red-200 hover:bg-red-50 hover:text-red-600"
                       >
                         ×
@@ -1072,12 +1188,20 @@ export default function StructurePage() { //pagina da estrutura fisica
               </ul>
             </div>
 
-            {branch.map((level, index) => ( //colunas do branch
-              <div key={`${level.kind}-${index}`} className="flex items-start">
+            {branch.map((level, index) => ( //colunas do branch (offset = pai selecionado)
+              <div
+                key={`${level.kind}-${index}`}
+                className="flex items-start transition-[margin-top] duration-300 ease-out"
+                style={{ marginTop: columnTops[index] ?? 0 }} //desce ate o pai
+              >
                 <div
-                  className="mx-3 mt-14 hidden w-6 shrink-0 border-t-2 border-slate-300 sm:block"
+                  className="relative mx-2 hidden h-14 w-10 shrink-0 sm:block"
                   aria-hidden
-                /> {/*traco conector*/}
+                >
+                  {/* conector horizontal na altura do card pai */}
+                  <div className="absolute left-0 right-0 top-1/2 border-t-2 border-slate-300" />
+                  <div className="absolute right-0 top-1/2 h-2 w-2 -translate-y-1/2 translate-x-1/2 rounded-full bg-slate-300" />
+                </div>
                 <div className={level.kind === "positions" ? "w-[28rem] shrink-0" : "w-52 shrink-0"}> {/*mapa mais largo*/}
                   <div className="mb-3 flex items-center justify-between gap-2">
                     <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -1091,7 +1215,7 @@ export default function StructurePage() { //pagina da estrutura fisica
                           onClick={() =>
                             setCreateTarget({ level: "freezer", room: level.room })
                           }
-                          className="flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 bg-white text-sm font-bold text-violet-600 hover:bg-violet-50"
+                          className="flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 bg-white text-sm font-bold text-brand-600 hover:bg-brand-50"
                         >
                           +
                         </button>
@@ -1107,7 +1231,7 @@ export default function StructurePage() { //pagina da estrutura fisica
                               freezer: level.freezer,
                             })
                           }
-                          className="flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 bg-white text-sm font-bold text-violet-600 hover:bg-violet-50"
+                          className="flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 bg-white text-sm font-bold text-brand-600 hover:bg-brand-50"
                         >
                           +
                         </button>
@@ -1124,7 +1248,7 @@ export default function StructurePage() { //pagina da estrutura fisica
                               drawer: level.drawer,
                             })
                           }
-                          className="flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 bg-white text-sm font-bold text-violet-600 hover:bg-violet-50"
+                          className="flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 bg-white text-sm font-bold text-brand-600 hover:bg-brand-50"
                         >
                           +
                         </button>
@@ -1166,7 +1290,11 @@ export default function StructurePage() { //pagina da estrutura fisica
                           (level.kind === "boxes" && pathHighlight?.boxId === item.id)
 
                         return (
-                          <li key={item.id} className="relative"> {/*card do no*/}
+                          <li
+                            key={item.id}
+                            ref={(el) => setNodeRef(`${level.kind}-${item.id}`, el)}
+                            className="relative"
+                          > {/*card do no*/}
                             <button
                               type="button"
                               disabled={branchLoading}
@@ -1223,7 +1351,7 @@ export default function StructurePage() { //pagina da estrutura fisica
                             </button>
                             <button
                               type="button"
-                              title="Mover para lixeira"
+                              title="Excluir"
                               onClick={(event) => { //soft-delete conforme o nivel
                                 if (level.kind === "freezers") {
                                   handleDeleteFreezer(level.room, item as Freezer, event)
@@ -1294,7 +1422,12 @@ export default function StructurePage() { //pagina da estrutura fisica
             ))}
 
             {branchLoading && ( //loading ao lado do branch
-              <p className="ml-4 mt-14 text-sm text-slate-400">Carregando...</p>
+              <p
+                className="ml-4 text-sm text-slate-400 transition-[margin-top] duration-300 ease-out"
+                style={{ marginTop: (columnTops[branch.length - 1] ?? 0) + 56 }}
+              >
+                Carregando...
+              </p>
             )}
           </div>
         </div>

@@ -9,79 +9,78 @@
 # migrations use external dependencies or application code.
 #
 # It's strongly recommended that you check this file into your version control system.
-# Foto atual do banco (apos cada migrate). Rails gera sozinho.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_08_020000) do #versao = ultima migration aplicada
+ActiveRecord::Schema[8.1].define(version: 2026_08_08_020000) do
   # These are extensions that must be enabled in order to support this database
-  enable_extension "pg_catalog.plpgsql" #extensao padrao do Postgres
+  enable_extension "pg_catalog.plpgsql"
 
-  create_table "boxes", force: :cascade do |t| #tabela de caixas
-    t.integer "columns" #colunas da grade
+  create_table "boxes", force: :cascade do |t|
+    t.integer "columns"
     t.datetime "created_at", null: false
-    t.datetime "discarded_at" #soft delete (lixeira)
-    t.bigint "drawer_id", null: false #FK da gaveta
-    t.string "name" #nome da caixa
-    t.integer "rows" #linhas da grade
+    t.datetime "discarded_at"
+    t.bigint "drawer_id", null: false
+    t.string "name"
+    t.integer "rows"
     t.datetime "updated_at", null: false
     t.index ["discarded_at"], name: "index_boxes_on_discarded_at"
     t.index ["drawer_id"], name: "index_boxes_on_drawer_id"
   end
 
-  create_table "drawers", force: :cascade do |t| #tabela de gavetas
+  create_table "drawers", force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.datetime "discarded_at" #soft delete
-    t.bigint "freezer_id", null: false #FK do freezer
+    t.datetime "discarded_at"
+    t.bigint "freezer_id", null: false
     t.string "name"
     t.datetime "updated_at", null: false
     t.index ["discarded_at"], name: "index_drawers_on_discarded_at"
     t.index ["freezer_id"], name: "index_drawers_on_freezer_id"
   end
 
-  create_table "freezers", force: :cascade do |t| #tabela de freezers
+  create_table "freezers", force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.datetime "discarded_at" #soft delete
+    t.datetime "discarded_at"
     t.string "name"
-    t.bigint "room_id", null: false #FK da sala
+    t.bigint "room_id", null: false
     t.datetime "updated_at", null: false
     t.index ["discarded_at"], name: "index_freezers_on_discarded_at"
     t.index ["room_id"], name: "index_freezers_on_room_id"
   end
 
-  create_table "positions", force: :cascade do |t| #tabela de celulas (A1, B2...)
-    t.bigint "box_id", null: false #FK da caixa
-    t.integer "column" #numero da coluna
+  create_table "positions", force: :cascade do |t|
+    t.bigint "box_id", null: false
+    t.integer "column"
     t.datetime "created_at", null: false
-    t.string "row" #letra da linha
+    t.string "row"
     t.datetime "updated_at", null: false
-    t.index ["box_id", "row", "column"], name: "index_positions_on_box_id_and_row_and_column", unique: true #unique por caixa
+    t.index ["box_id", "row", "column"], name: "index_positions_on_box_id_and_row_and_column", unique: true
     t.index ["box_id"], name: "index_positions_on_box_id"
   end
 
-  create_table "rooms", force: :cascade do |t| #tabela de salas
+  create_table "rooms", force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.datetime "discarded_at" #soft delete
+    t.datetime "discarded_at"
     t.string "name"
     t.datetime "updated_at", null: false
     t.index ["discarded_at"], name: "index_rooms_on_discarded_at"
   end
 
-  create_table "samples", force: :cascade do |t| #tabela de amostras
-    t.string "codigo_amostra" #codigo unico
-    t.decimal "concentracao_ng_ul" #concentracao (opcional)
+  create_table "samples", force: :cascade do |t|
+    t.string "codigo_amostra"
+    t.decimal "concentracao_ng_ul"
     t.datetime "created_at", null: false
     t.string "exame"
     t.string "material"
     t.text "observacao"
     t.string "paciente_nome"
-    t.bigint "position_id", null: false #FK da posicao
+    t.bigint "position_id", null: false
     t.datetime "updated_at", null: false
-    t.index ["codigo_amostra"], name: "index_samples_on_codigo_amostra", unique: true #codigo unico
+    t.index ["codigo_amostra"], name: "index_samples_on_codigo_amostra", unique: true
     t.index ["position_id"], name: "index_samples_on_position_id"
   end
 
-  add_foreign_key "boxes", "drawers" #caixa → gaveta
-  add_foreign_key "drawers", "freezers" #gaveta → freezer
-  add_foreign_key "freezers", "rooms" #freezer → sala
-  add_foreign_key "positions", "boxes" #posicao → caixa
-  add_foreign_key "samples", "positions" #amostra → posicao
+  add_foreign_key "boxes", "drawers"
+  add_foreign_key "drawers", "freezers"
+  add_foreign_key "freezers", "rooms"
+  add_foreign_key "positions", "boxes"
+  add_foreign_key "samples", "positions"
 end

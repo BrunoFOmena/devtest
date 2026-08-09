@@ -1,4 +1,6 @@
 class SamplesController < ApplicationController #herda da classe ApplicationController
+  before_action :set_sample, only: %i[destroy] #carrega a amostra antes do destroy
+
   def index #metodo para listar todas as amostras
     samples = Sample #consulta as amostras
       .includes(position: { box: { drawer: { freezer: :room } } }) #carrega a hierarquia inteira (evita N+1)
@@ -7,7 +9,13 @@ class SamplesController < ApplicationController #herda da classe ApplicationCont
     render json: samples.map { |sample| sample_json(sample) } #devolve amostra + localizacao
   end
 
+  def destroy #apaga uma amostra (libera a posicao)
+    @sample.destroy! #exclusao definitiva do microtubo
+    head :no_content #204 sem corpo
+  end
+
   def suggest #preview: sugere posicao sem gravar
+
     position = SampleAllocator.call(scope_params) #chama o first-fit (com escopo opcional)
 
     if position.nil? #se nao houver vaga
@@ -76,6 +84,10 @@ class SamplesController < ApplicationController #herda da classe ApplicationCont
 
   private #metodos privados para nao serem acessados externamente
 
+  def set_sample #busca a amostra pelo :id da URL
+    @sample = Sample.find(params[:id]) #404 se nao existir
+  end
+
   def scope_params #escopo opcional do first-fit (sala/freezer/gaveta/caixa)
     params.permit(:room_id, :freezer_id, :drawer_id, :box_id).to_h.symbolize_keys #permite esses ids e vira hash com simbolos
   end
@@ -91,3 +103,4 @@ class SamplesController < ApplicationController #herda da classe ApplicationCont
     )
   end
 end
+
