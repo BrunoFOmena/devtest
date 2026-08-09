@@ -1,13 +1,13 @@
 # Name of your application. Used to uniquely configure containers.
-service: backend
+service: backend #nome do servico no Kamal
 
 # Name of the container image (use your-user/app-name on external registries).
-image: backend
+image: backend #nome da imagem Docker
 
 # Deploy to these servers.
 servers:
   web:
-    - 192.168.0.1
+    - 192.168.0.1 #IP do servidor web (exemplo)
   # job:
   #   hosts:
   #     - 192.168.0.1
@@ -27,7 +27,7 @@ servers:
 # Where you keep your container images.
 registry:
   # Alternatives: hub.docker.com / registry.digitalocean.com / ghcr.io / ...
-  server: localhost:5555
+  server: localhost:5555 #registry local de imagens
 
   # Needed for authenticated registries.
   # username: your-user
@@ -39,11 +39,11 @@ registry:
 # Inject ENV variables into containers (secrets come from .kamal/secrets).
 env:
   secret:
-    - RAILS_MASTER_KEY
+    - RAILS_MASTER_KEY #segredo injetado do .kamal/secrets
   clear:
     # Run the Solid Queue Supervisor inside the web server's Puma process to do jobs.
     # When you start using multiple servers, you should split out job processing to a dedicated machine.
-    SOLID_QUEUE_IN_PUMA: true
+    SOLID_QUEUE_IN_PUMA: true #filas dentro do Puma
 
     # Set number of processes dedicated to Solid Queue (default: 1)
     # JOB_CONCURRENCY: 3
@@ -61,20 +61,20 @@ env:
 # Aliases are triggered with "bin/kamal <alias>". You can overwrite arguments on invocation:
 # "bin/kamal logs -r job" will tail logs from the first server in the job section.
 aliases:
-  console: app exec --interactive --reuse "bin/rails console"
-  shell: app exec --interactive --reuse "bash"
-  logs: app logs -f
-  dbc: app exec --interactive --reuse "bin/rails dbconsole --include-password"
+  console: app exec --interactive --reuse "bin/rails console" #atalho: console Rails no container
+  shell: app exec --interactive --reuse "bash" #atalho: shell no container
+  logs: app logs -f #atalho: logs ao vivo
+  dbc: app exec --interactive --reuse "bin/rails dbconsole --include-password" #atalho: console do banco
 
 # Use a persistent storage volume for sqlite database files and local Active Storage files.
 # Recommended to change this to a mounted volume path that is backed up off server.
 volumes:
-  - "backend_storage:/rails/storage"
+  - "backend_storage:/rails/storage" #volume persistente do storage
 
 
 # Configure the image builder.
 builder:
-  arch: amd64
+  arch: amd64 #arquitetura da imagem
 
   # # Build image via remote server (useful for faster amd64 builds on arm64 computers)
   # remote: ssh://docker@docker-builder-server

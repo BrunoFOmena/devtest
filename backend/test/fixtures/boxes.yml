@@ -1,13 +1,14 @@
+# fixtures de caixas (Box)
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
-  drawer: one
-  name: MyString
-  rows: 1
-  columns: 1
+one: #caixa exemplo 1
+  drawer: one #pertence a drawers(:one)
+  name: MyString #nome da caixa
+  rows: 1 #linhas da grade
+  columns: 1 #colunas da grade
 
-two:
-  drawer: two
-  name: MyString
-  rows: 1
-  columns: 1
+two: #caixa exemplo 2
+  drawer: two #pertence a drawers(:two)
+  name: MyString #nome da caixa
+  rows: 1 #linhas da grade
+  columns: 1 #colunas da grade

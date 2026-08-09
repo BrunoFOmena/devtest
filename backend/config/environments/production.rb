@@ -1,25 +1,25 @@
-require "active_support/core_ext/integer/time"
+require "active_support/core_ext/integer/time" #helpers de tempo
 
-Rails.application.configure do
+Rails.application.configure do #config so do ambiente production
   # Settings specified here will take precedence over those in config/application.rb.
 
   # Code is not reloaded between requests.
-  config.enable_reloading = false
+  config.enable_reloading = false #sem reload em producao
 
   # Eager load code on boot for better performance and memory savings (ignored by Rake tasks).
-  config.eager_load = true
+  config.eager_load = true #carrega tudo no boot (performance)
 
   # Full error reports are disabled.
-  config.consider_all_requests_local = false
+  config.consider_all_requests_local = false #nao expoe stack trace ao cliente
 
   # Cache assets for far-future expiry since they are all digest stamped.
-  config.public_file_server.headers = { "cache-control" => "public, max-age=#{1.year.to_i}" }
+  config.public_file_server.headers = { "cache-control" => "public, max-age=#{1.year.to_i}" } #cache longo de assets
 
   # Enable serving of images, stylesheets, and JavaScripts from an asset server.
   # config.asset_host = "http://assets.example.com"
 
   # Store uploaded files on the local file system (see config/storage.yml for options).
-  config.active_storage.service = :local
+  config.active_storage.service = :local #uploads locais (pode trocar para S3)
 
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.
   # config.assume_ssl = true
@@ -31,24 +31,24 @@ Rails.application.configure do
   # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
 
   # Log to STDOUT with the current request id as a default log tag.
-  config.log_tags = [ :request_id ]
-  config.logger   = ActiveSupport::TaggedLogging.logger(STDOUT)
+  config.log_tags = [ :request_id ] #tag de request_id nos logs
+  config.logger   = ActiveSupport::TaggedLogging.logger(STDOUT) #log no stdout (Docker/Kamal)
 
   # Change to "debug" to log everything (including potentially personally-identifiable information!).
-  config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
+  config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info") #nivel de log via ENV
 
   # Prevent health checks from clogging up the logs.
-  config.silence_healthcheck_path = "/up"
+  config.silence_healthcheck_path = "/up" #nao polui log com /up
 
   # Don't log any deprecations.
-  config.active_support.report_deprecations = false
+  config.active_support.report_deprecations = false #sem avisos de deprecacao no log
 
   # Replace the default in-process memory cache store with a durable alternative.
-  config.cache_store = :solid_cache_store
+  config.cache_store = :solid_cache_store #cache persistente (Solid Cache)
 
   # Replace the default in-process and non-durable queuing backend for Active Job.
-  config.active_job.queue_adapter = :solid_queue
-  config.solid_queue.connects_to = { database: { writing: :queue } }
+  config.active_job.queue_adapter = :solid_queue #filas com Solid Queue
+  config.solid_queue.connects_to = { database: { writing: :queue } } #usa o banco queue
 
   # Ignore bad email addresses and do not raise email delivery errors.
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.
@@ -68,13 +68,13 @@ Rails.application.configure do
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).
-  config.i18n.fallbacks = true
+  config.i18n.fallbacks = true #fallback de traducoes
 
   # Do not dump schema after migrations.
-  config.active_record.dump_schema_after_migration = false
+  config.active_record.dump_schema_after_migration = false #nao reescreve schema.rb apos migrate
 
   # Only use :id for inspections in production.
-  config.active_record.attributes_for_inspect = [ :id ]
+  config.active_record.attributes_for_inspect = [ :id ] #inspect mostra so o id
 
   # Enable DNS rebinding protection and other `Host` header attacks.
   # config.hosts = [

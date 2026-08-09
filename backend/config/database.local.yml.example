@@ -1,15 +1,15 @@
-# Copie para database.local.yml:
+# Copie para database.local.yml: #arquivo de exemplo (vai pro Git)
 #   cp config/database.local.yml.example config/database.local.yml
 #
-# Credenciais iguais ao docker-compose.yml na raiz do repositório.
+# Credenciais iguais ao docker-compose.yml na raiz do repositorio.
 
-development:
-  username: postgres
-  password: postgres
-  host: 127.0.0.1
-  port: 5432
+development: #ambiente local do dia a dia
+  username: postgres #usuario do Postgres
+  password: postgres #senha do Postgres
+  host: 127.0.0.1 #host local (evita problema de IPv6 no Windows)
+  port: 5432 #porta padrao do Postgres
 
-test:
+test: #ambiente dos testes automatizados
   username: postgres
   password: postgres
   host: 127.0.0.1

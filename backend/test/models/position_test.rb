@@ -1,33 +1,33 @@
 require "test_helper"
 
-class PositionTest < ActiveSupport::TestCase
+class PositionTest < ActiveSupport::TestCase #testes do model Position
   fixtures []
 
-  test "nao permite duas posicoes iguais na mesma caixa" do
+  test "nao permite duas posicoes iguais na mesma caixa" do #unique box_id+row+column
     box = create_box(rows: 1, columns: 1)
 
-    duplicate = Position.new(box: box, row: "A", column: 1)
+    duplicate = Position.new(box: box, row: "A", column: 1) #tenta segundo A1
 
     assert_not duplicate.valid?
     assert_includes duplicate.errors[:row], "has already been taken"
   end
 
-  test "posicao ocupada fica indisponivel para nova amostra na mesma celula" do
+  test "posicao ocupada fica indisponivel para nova amostra na mesma celula" do #has_one sample
     box = create_box(rows: 1, columns: 1)
     position = box.positions.first
 
     occupy(box, "A", 1, codigo_amostra: "AMO-001")
 
-    assert position.reload.sample.present?
-    assert_equal 1, Sample.where(position_id: position.id).count
+    assert position.reload.sample.present? #tem amostra ligada
+    assert_equal 1, Sample.where(position_id: position.id).count #so uma amostra
   end
 
-  test "permite mesma celula em caixas diferentes" do
+  test "permite mesma celula em caixas diferentes" do #unique e por caixa
     box_a = create_box(rows: 1, columns: 1, name: "Caixa A")
     box_b = create_box(rows: 1, columns: 1, name: "Caixa B")
 
     assert box_a.positions.exists?(row: "A", column: 1)
-    assert box_b.positions.exists?(row: "A", column: 1)
+    assert box_b.positions.exists?(row: "A", column: 1) #A1 pode existir nas duas
   end
 
   test "exige row e column" do
@@ -39,7 +39,7 @@ class PositionTest < ActiveSupport::TestCase
     assert_includes position.errors[:column], "can't be blank"
   end
 
-  test "destroy da posicao remove a amostra" do
+  test "destroy da posicao remove a amostra" do #dependent: :destroy
     box = create_box(rows: 1, columns: 1)
     position = box.positions.first
     occupy(box, "A", 1, codigo_amostra: "POS-DEL-001")

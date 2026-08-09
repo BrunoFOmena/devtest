@@ -1,7 +1,8 @@
+# fixtures de salas (Room)
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
-  name: MyString
+one: #sala exemplo 1
+  name: MyString #nome da sala
 
-two:
-  name: MyString
+two: #sala exemplo 2
+  name: MyString #nome da sala

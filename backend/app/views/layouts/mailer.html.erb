@@ -1,13 +1,13 @@
-<!DOCTYPE html>
+<!DOCTYPE html> <%# layout HTML padrao dos e-mails %>
 <html>
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"> <%# charset do e-mail %>
     <style>
-      /* Email styles need to be inline */
+      /* Email styles need to be inline */ <%# lembrete: CSS de e-mail costuma ir inline %>
     </style>
   </head>
 
   <body>
-    <%= yield %>
+    <%= yield %> <%# injeta o corpo do e-mail aqui %>
   </body>
 </html>

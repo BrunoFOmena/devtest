@@ -1,14 +1,14 @@
-# Run using bin/ci
+# Run using bin/ci #pipeline local de CI
 
-CI.run do
-  step "Setup", "bin/setup --skip-server"
+CI.run do #define os passos do bin/ci
+  step "Setup", "bin/setup --skip-server" #prepara o ambiente sem subir server
 
-  step "Style: Ruby", "bin/rubocop"
+  step "Style: Ruby", "bin/rubocop" #linter de estilo
 
-  step "Security: Gem audit", "bin/bundler-audit"
-  step "Security: Brakeman code analysis", "bin/brakeman --quiet --no-pager --exit-on-warn --exit-on-error"
-  step "Tests: Rails", "bin/rails test"
-  step "Tests: Seeds", "env RAILS_ENV=test bin/rails db:seed:replant"
+  step "Security: Gem audit", "bin/bundler-audit" #auditoria de gems vulneraveis
+  step "Security: Brakeman code analysis", "bin/brakeman --quiet --no-pager --exit-on-warn --exit-on-error" #analise estatica de seguranca
+  step "Tests: Rails", "bin/rails test" #roda a suite de testes
+  step "Tests: Seeds", "env RAILS_ENV=test bin/rails db:seed:replant" #reaplica seeds no test
 
   # Optional: Run system tests
   # step "Tests: System", "bin/rails test:system"

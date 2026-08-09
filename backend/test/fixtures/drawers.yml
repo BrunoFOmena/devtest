@@ -1,9 +1,10 @@
+# fixtures de gavetas (Drawer)
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
-  freezer: one
-  name: MyString
+one: #gaveta exemplo 1
+  freezer: one #pertence a freezers(:one)
+  name: MyString #nome da gaveta
 
-two:
-  freezer: two
-  name: MyString
+two: #gaveta exemplo 2
+  freezer: two #pertence a freezers(:two)
+  name: MyString #nome da gaveta

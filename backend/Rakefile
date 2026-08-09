@@ -1,6 +1,7 @@
 # Add your own tasks in files placed in lib/tasks ending in .rake,
 # for example lib/tasks/capistrano.rake, and they will automatically be available to Rake.
+# Arquivo que carrega as tarefas Rake (db:migrate, test, etc.).
 
-require_relative "config/application"
+require_relative "config/application" #carrega a aplicacao Rails
 
-Rails.application.load_tasks
+Rails.application.load_tasks #registra as tasks do Rails e de lib/tasks

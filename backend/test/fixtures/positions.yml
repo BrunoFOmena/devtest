@@ -1,11 +1,12 @@
+# fixtures de posicoes (Position)
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
-  box: one
-  row: MyString
-  column: 1
+one: #posicao exemplo 1
+  box: one #pertence a boxes(:one)
+  row: MyString #letra da linha
+  column: 1 #numero da coluna
 
-two:
-  box: two
-  row: MyString
-  column: 1
+two: #posicao exemplo 2
+  box: two #pertence a boxes(:two)
+  row: MyString #letra da linha
+  column: 1 #numero da coluna

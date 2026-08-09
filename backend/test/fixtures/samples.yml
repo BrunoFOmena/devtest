@@ -1,19 +1,20 @@
+# fixtures de amostras (Sample)
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
-  position: one
-  codigo_amostra: MyString
-  paciente_nome: MyString
-  concentracao_ng_ul: 9.99
-  material: MyString
-  exame: MyString
-  observacao: MyText
+one: #amostra exemplo 1
+  position: one #ocupa positions(:one)
+  codigo_amostra: MyString #codigo unico
+  paciente_nome: MyString #nome do paciente
+  concentracao_ng_ul: 9.99 #concentracao
+  material: MyString #tipo de material
+  exame: MyString #exame opcional
+  observacao: MyText #obs opcional
 
-two:
-  position: two
-  codigo_amostra: MyString2
-  paciente_nome: MyString
-  concentracao_ng_ul: 9.99
-  material: MyString
-  exame: MyString
-  observacao: MyText
+two: #amostra exemplo 2
+  position: two #ocupa positions(:two)
+  codigo_amostra: MyString2 #codigo unico diferente
+  paciente_nome: MyString #nome do paciente
+  concentracao_ng_ul: 9.99 #concentracao
+  material: MyString #tipo de material
+  exame: MyString #exame opcional
+  observacao: MyText #obs opcional

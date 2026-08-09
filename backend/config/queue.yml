@@ -1,11 +1,11 @@
-default: &default
-  dispatchers:
-    - polling_interval: 1
-      batch_size: 500
-  workers:
-    - queues: "*"
-      threads: 3
-      processes: <%= ENV.fetch("JOB_CONCURRENCY", 1) %>
+default: &default #bloco padrao das filas (Solid Queue)
+  dispatchers: #quem despacha jobs
+    - polling_interval: 1 #intervalo de polling
+      batch_size: 500 #tamanho do lote
+  workers: #quem executa jobs
+    - queues: "*" #todas as filas
+      threads: 3 #threads por worker
+      processes: <%= ENV.fetch("JOB_CONCURRENCY", 1) %> #processos via ENV
       polling_interval: 1
 
 development:

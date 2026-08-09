@@ -1,9 +1,9 @@
 require "test_helper"
 
-class SampleTest < ActiveSupport::TestCase
+class SampleTest < ActiveSupport::TestCase #testes do model Sample
   fixtures []
 
-  test "aceita concentracao vazia" do
+  test "aceita concentracao vazia" do #allow_nil: true
     box = create_box(rows: 1, columns: 1)
     position = box.positions.first
 
@@ -19,7 +19,7 @@ class SampleTest < ActiveSupport::TestCase
     assert sample.save
   end
 
-  test "rejeita codigo_amostra duplicado" do
+  test "rejeita codigo_amostra duplicado" do #uniqueness
     box = create_box(rows: 1, columns: 2)
     positions = box.positions.order(:row, :column).to_a
 
@@ -32,7 +32,7 @@ class SampleTest < ActiveSupport::TestCase
 
     duplicate = Sample.new(
       position: positions[1],
-      codigo_amostra: "AMO-DUP",
+      codigo_amostra: "AMO-DUP", #mesmo codigo
       paciente_nome: "Joao",
       material: "Sangue"
     )
@@ -41,7 +41,7 @@ class SampleTest < ActiveSupport::TestCase
     assert_includes duplicate.errors[:codigo_amostra], "has already been taken"
   end
 
-  test "rejeita concentracao negativa" do
+  test "rejeita concentracao negativa" do #>= 0
     box = create_box(rows: 1, columns: 1)
 
     sample = Sample.new(
@@ -85,7 +85,7 @@ class SampleTest < ActiveSupport::TestCase
     assert_includes sample.errors[:codigo_amostra], "can't be blank"
   end
 
-  test "aceita concentracao zero" do
+  test "aceita concentracao zero" do #zero e valido (>= 0)
     box = create_box(rows: 1, columns: 1)
 
     sample = Sample.new(
@@ -99,7 +99,7 @@ class SampleTest < ActiveSupport::TestCase
     assert sample.valid?
   end
 
-  test "exige position" do
+  test "exige position" do #belongs_to position
     sample = Sample.new(
       codigo_amostra: "AMO-004",
       paciente_nome: "Maria",

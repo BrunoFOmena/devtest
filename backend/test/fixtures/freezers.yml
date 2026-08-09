@@ -1,9 +1,10 @@
+# fixtures de freezers (Freezer)
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
-  room: one
-  name: MyString
+one: #freezer exemplo 1
+  room: one #pertence a rooms(:one)
+  name: MyString #nome do freezer
 
-two:
-  room: two
-  name: MyString
+two: #freezer exemplo 2
+  room: two #pertence a rooms(:two)
+  name: MyString #nome do freezer
