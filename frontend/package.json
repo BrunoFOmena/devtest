@@ -1,27 +1,42 @@
 {
+  "//": "package.json nao aceita #; usamos a chave // so como anotacao",
   "name": "frontend",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "//dev": "sobe o Vite em desenvolvimento (porta 5173)",
     "dev": "vite",
+    "//build": "checa TypeScript e gera pasta dist/",
     "build": "tsc -b && vite build",
+    "//lint": "roda o linter Oxlint",
     "lint": "oxlint",
+    "//preview": "serve o dist/ localmente para testar o build",
     "preview": "vite preview"
   },
   "dependencies": {
+    "//react": "biblioteca de UI",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "//react-dom": "React no DOM do browser",
+    "react-dom": "^19.2.8",
+    "//react-router-dom": "rotas do frontend (/estrutura, /amostras...)",
+    "react-router-dom": "^7.18.2"
   },
   "devDependencies": {
+    "//tailwind-vite": "integracao Tailwind com Vite",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
+    "//plugin-react": "plugin oficial React para Vite",
     "@vitejs/plugin-react": "^6.0.4",
+    "//oxlint": "linter de JS/TS",
     "oxlint": "^1.75.0",
+    "//tailwindcss": "utilitarios CSS",
     "tailwindcss": "^4.3.3",
+    "//typescript": "tipagem estatica",
     "typescript": "~6.0.2",
+    "//vite": "bundler / dev server",
     "vite": "^8.2.0"
   }
 }
