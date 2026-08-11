@@ -5,24 +5,8 @@ import AlertModal from "../components/AlertModal" //alerta de codigo duplicado
 import AutoPositionChoiceModal from "../components/AutoPositionChoiceModal" //aceita/rejeita posicao auto
 import LocationSuggestionModal from "../components/LocationSuggestionModal" //escolhe local na mao
 import PageHeader from "../components/PageHeader" //titulo padrao da marca
+import { isDuplicateCodigo, scopeFromLocation } from "../lib/newSampleUtils" //helpers do cadastro
 import type { AllocationScope, Location } from "../types/api" //tipos de escopo e local
-
-function isDuplicateCodigo(error: ApiError): boolean { //detecta 422 de codigo repetido
-  return (
-    error.status === 422 && //so em conflito de validacao
-    /codigo_amostra/i.test(error.message) && //mensagem fala do campo
-    /already been taken|taken|já está em uso|em uso/i.test(error.message) //e diz que ja existe
-  )
-}
-
-function scopeFromLocation(location: Location): AllocationScope { //monta escopo a partir do local
-  return {
-    room_id: location.room_id, //sala
-    freezer_id: location.freezer_id, //freezer
-    drawer_id: location.drawer_id, //gaveta
-    box_id: location.box_id, //caixa
-  }
-}
 
 const EMPTY_FORM = { //valores iniciais do formulario
   codigo_amostra: "", //codigo unico

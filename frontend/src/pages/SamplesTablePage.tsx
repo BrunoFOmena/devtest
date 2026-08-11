@@ -3,8 +3,19 @@ import { ApiError } from "../api/client" //erro tipado da API
 import { deleteSample, listSamples } from "../api/resources" //lista e apaga amostras
 import PageHeader from "../components/PageHeader" //titulo padrao da marca
 import SampleDetailModal from "../components/SampleDetailModal" //ficha com botao excluir
+import {
+  applyFilterChange,
+  clampPage,
+  EMPTY_SAMPLE_FILTERS,
+  filterSamples,
+  PAGE_SIZE_OPTIONS,
+  slicePage,
+  totalPagesFor,
+  uniqueSorted,
+  type PageSize,
+  type SampleFilters,
+} from "../lib/samplesTableUtils" //filtros e paginacao testaveis
 import type { SampleWithLocation } from "../types/api" //tipo da linha da tabela
-
 
 const COLUMNS = [ //colunas iguais ao CSV de exemplo
   { key: "sala", label: "sala" },
@@ -23,28 +34,6 @@ const COLUMNS = [ //colunas iguais ao CSV de exemplo
 ] as const
 
 type ColumnKey = (typeof COLUMNS)[number]["key"] //union das keys
-
-interface Filters { //filtros da barra superior
-  sala: string
-  freezer: string
-  gaveta: string
-  caixa: string
-  /** "" = todas | "vazia" | "preenchida" */
-  concentracao: string //filtro especial de concentracao
-}
-
-const EMPTY_FILTERS: Filters = { //filtros zerados
-  sala: "",
-  freezer: "",
-  gaveta: "",
-  caixa: "",
-  concentracao: "",
-}
-
-function isEmptyConcentration(sample: SampleWithLocation): boolean { //concentracao vazia?
-  const value = sample.concentracao_ng_ul
-  return value === null || value === undefined || String(value).trim() === "" //null/undefined/blank
-}
 
 function cellValue(sample: SampleWithLocation, key: ColumnKey): string { //valor textual da celula
   switch (key) {
@@ -77,12 +66,6 @@ function cellValue(sample: SampleWithLocation, key: ColumnKey): string { //valor
   }
 }
 
-function uniqueSorted(values: string[]): string[] { //opcoes unicas ordenadas
-  return [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b)) //sem vazios, A-Z
-}
-
-const PAGE_SIZE_OPTIONS = [5, 15, 25, 35, 50] as const //opcoes de "mostrar X resultados"
-
 const selectClass = //estilo dos selects de filtro
   "rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
 
@@ -90,8 +73,8 @@ export default function SamplesTablePage() { //pagina tabela de amostras
   const [samples, setSamples] = useState<SampleWithLocation[]>([]) //todas as amostras
   const [loading, setLoading] = useState(true) //carregando
   const [error, setError] = useState<string | null>(null) //erro de carga
-  const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS) //filtros ativos
-  const [pageSize, setPageSize] = useState<(typeof PAGE_SIZE_OPTIONS)[number]>(25) //linhas por pagina
+  const [filters, setFilters] = useState<SampleFilters>(EMPTY_SAMPLE_FILTERS) //filtros ativos
+  const [pageSize, setPageSize] = useState<PageSize>(25) //linhas por pagina
   const [page, setPage] = useState(1) //pagina atual (1-based)
   const [activeSample, setActiveSample] = useState<SampleWithLocation | null>(null) //ficha aberta
   const [deletingId, setDeletingId] = useState<number | null>(null) //id em exclusao na linha
@@ -157,48 +140,24 @@ export default function SamplesTablePage() { //pagina tabela de amostras
     return uniqueSorted(scoped.map((s) => s.box))
   }, [samples, filters.sala, filters.freezer, filters.gaveta])
 
-  const filtered = useMemo(() => { //aplica todos os filtros
-    return samples.filter((sample) => {
-      if (filters.sala && sample.room !== filters.sala) return false //sala
-      if (filters.freezer && sample.freezer !== filters.freezer) return false //freezer
-      if (filters.gaveta && sample.drawer !== filters.gaveta) return false //gaveta
-      if (filters.caixa && sample.box !== filters.caixa) return false //caixa
-      if (filters.concentracao === "vazia" && !isEmptyConcentration(sample)) return false //so vazias
-      if (filters.concentracao === "preenchida" && isEmptyConcentration(sample)) return false //so preenchidas
-      return true //passou
-    })
-  }, [samples, filters])
+  const filtered = useMemo(() => filterSamples(samples, filters), [samples, filters])
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize)) //paginas com o pageSize atual
-  const currentPage = Math.min(page, totalPages) //corrige se filtros reduziram o total
+  const totalPages = totalPagesFor(filtered.length, pageSize) //paginas com o pageSize atual
+  const currentPage = clampPage(page, totalPages) //corrige se filtros reduziram o total
 
-  const pageRows = useMemo(() => { //fatia visivel da tabela
-    const start = (currentPage - 1) * pageSize
-    return filtered.slice(start, start + pageSize)
-  }, [filtered, currentPage, pageSize])
+  const pageRows = useMemo(
+    () => slicePage(filtered, currentPage, pageSize), //fatia visivel da tabela
+    [filtered, currentPage, pageSize],
+  )
 
   const hasActiveFilters = Object.values(filters).some(Boolean) //algum filtro ligado?
 
-  function updateFilter<K extends keyof Filters>(key: K, value: string) { //muda um filtro
+  function updateFilter<K extends keyof SampleFilters>(key: K, value: string) { //muda um filtro
     setPage(1) //volta pra primeira pagina ao filtrar
-    setFilters((current) => {
-      const next = { ...current, [key]: value } //aplica o valor
-      // Cascata: ao mudar um nivel pai, limpa os filhos.
-      if (key === "sala") {
-        next.freezer = "" //limpa filhos
-        next.gaveta = ""
-        next.caixa = ""
-      } else if (key === "freezer") {
-        next.gaveta = ""
-        next.caixa = ""
-      } else if (key === "gaveta") {
-        next.caixa = ""
-      }
-      return next
-    })
+    setFilters((current) => applyFilterChange(current, key, value)) //cascata nos filhos
   }
 
-  function changePageSize(value: (typeof PAGE_SIZE_OPTIONS)[number]) { //troca "mostrar X"
+  function changePageSize(value: PageSize) { //troca "mostrar X"
     setPageSize(value)
     setPage(1) //reinicia paginacao
   }
@@ -309,7 +268,7 @@ export default function SamplesTablePage() { //pagina tabela de amostras
                 <button
                   type="button"
                   onClick={() => {
-                    setFilters(EMPTY_FILTERS) //zera tudo
+                    setFilters(EMPTY_SAMPLE_FILTERS) //zera tudo
                     setPage(1) //volta ao inicio
                   }}
                   className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
@@ -330,9 +289,7 @@ export default function SamplesTablePage() { //pagina tabela de amostras
                 <span className="font-medium text-slate-700">Mostrar</span>
                 <select
                   value={pageSize}
-                  onChange={(e) =>
-                    changePageSize(Number(e.target.value) as (typeof PAGE_SIZE_OPTIONS)[number])
-                  }
+                  onChange={(e) => changePageSize(Number(e.target.value) as PageSize)}
                   className={selectClass}
                   aria-label="Mostrar quantos resultados"
                 >

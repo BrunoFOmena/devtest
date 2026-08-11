@@ -222,31 +222,47 @@ export default function StructurePage() { //pagina da estrutura fisica
     kind: "freezers" | "drawers" | "boxes",
     itemId: number,
   ) {
-    setBranch((current) => {
-      const level = current.find((entry) => entry.kind === kind) //nivel alvo
-      if (!level || level.kind === "positions" || !("items" in level)) return current
-      const items = level.items.filter((item) => item.id !== itemId) //remove o item
-      const wasSelected = "selectedId" in level && level.selectedId === itemId //era o aberto?
+    setBranch((current): TreeLevel[] => {
+      if (kind === "freezers") {
+        const level = current.find((entry) => entry.kind === "freezers")
+        if (!level) return current
+        const items = level.items.filter((item) => item.id !== itemId)
+        if (level.selectedId === itemId) {
+          return [{ ...level, items, selectedId: undefined }] //recolhe tudo abaixo
+        }
+        return current.map((entry) =>
+          entry.kind === "freezers" ? { ...entry, items } : entry,
+        )
+      }
 
-      if (kind === "freezers" && wasSelected) {
-        return [{ ...level, items, selectedId: undefined }] //recolhe tudo abaixo
+      if (kind === "drawers") {
+        const level = current.find((entry) => entry.kind === "drawers")
+        if (!level) return current
+        const items = level.items.filter((item) => item.id !== itemId)
+        if (level.selectedId === itemId) {
+          return current
+            .filter((entry) => entry.kind === "freezers" || entry.kind === "drawers")
+            .map((entry) =>
+              entry.kind === "drawers" ? { ...entry, items, selectedId: undefined } : entry,
+            )
+        }
+        return current.map((entry) =>
+          entry.kind === "drawers" ? { ...entry, items } : entry,
+        )
       }
-      if (kind === "drawers" && wasSelected) {
+
+      const level = current.find((entry) => entry.kind === "boxes")
+      if (!level) return current
+      const items = level.items.filter((item) => item.id !== itemId)
+      if (level.selectedId === itemId) {
         return current
-          .filter((entry) => entry.kind === "freezers" || entry.kind === "drawers") //corta boxes/mapa
-          .map((entry) =>
-            entry.kind === "drawers" ? { ...entry, items, selectedId: undefined } : entry,
-          )
-      }
-      if (kind === "boxes" && wasSelected) {
-        return current
-          .filter((entry) => entry.kind !== "positions") //tira o mapa
+          .filter((entry) => entry.kind !== "positions")
           .map((entry) =>
             entry.kind === "boxes" ? { ...entry, items, selectedId: undefined } : entry,
           )
       }
       return current.map((entry) =>
-        entry.kind === kind && "items" in entry ? { ...entry, items } : entry, //so atualiza lista
+        entry.kind === "boxes" ? { ...entry, items } : entry,
       )
     })
     clearLocate() //some highlight

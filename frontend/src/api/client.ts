@@ -9,7 +9,8 @@ export class ApiError extends Error { //erro HTTP tipado da API
   }
 }
 
-function extractMessage(body: unknown): string { //tira texto de { error } ou { errors }
+/** Extrai mensagem legivel de { error } ou { errors } — exportada para testes. */
+export function extractMessage(body: unknown): string { //tira texto de { error } ou { errors }
   if (body && typeof body === "object") {
     const data = body as Record<string, unknown>
     if (typeof data.error === "string") return data.error //ex.: "Not found" / "abrir nova caixa"
