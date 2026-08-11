@@ -2,7 +2,7 @@
 
 ## O problema
 
-Num laboratório genômico, milhares de microtubos de DNA ficam guardados em freezers, gavetas e caixas com posições como A1, B2, C3. Hoje isso vive em planilha: difícil de buscar, fácil de errar, impossível de escalar.
+Num laboratório genômico, milhares de microtubos de DNA ficam guardados em freezers, gavetas e caixas com posições como A1, B2, C3. Hoje isso vive em planilha.
 
 Esta aplicação web full stack substitui a planilha por um sistema que sabe onde cada amostra está e sugere automaticamente onde guardar a próxima.
 
@@ -26,7 +26,7 @@ Ao cadastrar uma caixa, o sistema gera a grade inteira (8×12, 10×10, 4×4 — 
 
 **API (Rails)**
 
-CRUD hierárquico, sugestão e criação de amostras (first-fit com escopo opcional), exclusão de amostra, busca, grade da caixa, importação CSV e validações.
+CRUD hierárquico, sugestão e criação de amostras (first-fit), exclusão de amostra, busca, grade da caixa, importação CSV e validações.
 
 ---
 
